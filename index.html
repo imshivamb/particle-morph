@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morph Engine</title>
+    <meta
+      name="description"
+      content="One particle field. Any two shapes. A controlled cloud in between."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@380;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="stage" aria-hidden="true"></canvas>
+      <div class="veil"></div>
+
+      <header class="chrome top">
+        <p class="eyebrow">Morph Engine</p>
+        <h1>One field. Any form.</h1>
+        <p class="lede">
+          Particles do not swap. They destabilize, open into a cloud, and settle
+          as the next shape.
+        </p>
+      </header>
+
+      <nav class="chrome presets" aria-label="Authored presets">
+        <button type="button" data-preset="mark" aria-pressed="true">Mark</button>
+        <button type="button" data-preset="nova">Nova</button>
+        <button type="button" data-preset="glyph">Glyph</button>
+      </nav>
+
+      <section class="chrome drop" aria-label="Drop your own images">
+        <p class="drop-title">Or drop two images</p>
+        <div class="slots">
+          <label class="slot">
+            <span>A</span>
+            <input id="file-a" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" />
+            <em id="name-a">Source</em>
+          </label>
+          <label class="slot">
+            <span>B</span>
+            <input id="file-b" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" />
+            <em id="name-b">Target</em>
+          </label>
+        </div>
+        <button type="button" id="play-custom" disabled>Morph A → B</button>
+      </section>
+
+      <p id="status" class="chrome status" role="status">Loading stage…</p>
+    </div>
+    <script type="module" src="/src/playground/main.ts"></script>
+  </body>
+</html>

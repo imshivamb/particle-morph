@@ -1,0 +1,233 @@
+:root {
+  color-scheme: dark;
+  --ink: #f4f1ea;
+  --mute: rgba(244, 241, 234, 0.58);
+  --line: rgba(244, 241, 234, 0.16);
+  --glass: rgba(10, 12, 16, 0.42);
+  --accent: #9ef2ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  background: #07080c;
+  color: var(--ink);
+  font-family: Outfit, sans-serif;
+  overflow: hidden;
+}
+
+#stage,
+.veil {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#stage {
+  display: block;
+}
+
+.veil {
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 18%, rgba(7, 8, 12, 0.55) 78%),
+    linear-gradient(180deg, rgba(7, 8, 12, 0.28), transparent 24%, transparent 68%, rgba(7, 8, 12, 0.5));
+}
+
+.chrome {
+  position: fixed;
+  z-index: 2;
+}
+
+.top {
+  top: 28px;
+  left: 28px;
+  right: 28px;
+  max-width: 34rem;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  color: var(--accent);
+}
+
+h1 {
+  margin: 0;
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  font-weight: 400;
+  line-height: 0.92;
+}
+
+.lede {
+  max-width: 28rem;
+  margin: 14px 0 0;
+  color: var(--mute);
+  line-height: 1.5;
+}
+
+.presets {
+  left: 28px;
+  bottom: 28px;
+  display: flex;
+  gap: 8px;
+}
+
+.presets button,
+#play-custom {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font: 500 0.92rem Outfit, sans-serif;
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+}
+
+.presets button[aria-pressed="true"],
+#play-custom:not(:disabled):hover,
+.presets button:hover {
+  border-color: rgba(158, 242, 255, 0.5);
+  color: var(--accent);
+}
+
+#play-custom:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.drop {
+  right: 28px;
+  bottom: 28px;
+  width: min(22rem, calc(100vw - 56px));
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+}
+
+.drop-title {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.slot {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.slot span {
+  font-size: 0.72rem;
+  color: var(--accent);
+}
+
+.slot em {
+  font-style: normal;
+  color: var(--mute);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot input {
+  display: none;
+}
+
+#play-custom {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.status {
+  left: 28px;
+  bottom: 84px;
+  margin: 0;
+  color: var(--mute);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 720px) {
+  body {
+    overflow: auto;
+  }
+
+  .top,
+  .presets,
+  .drop,
+  .status {
+    position: absolute;
+  }
+
+  .top {
+    top: 18px;
+    left: 18px;
+    right: 18px;
+  }
+
+  h1 {
+    font-size: 2.3rem;
+  }
+
+  .lede {
+    display: none;
+  }
+
+  .presets {
+    left: 18px;
+    right: 18px;
+    bottom: auto;
+    top: 168px;
+  }
+
+  .status {
+    left: 18px;
+    right: 18px;
+    top: 220px;
+    bottom: auto;
+  }
+
+  .drop {
+    left: 18px;
+    right: 18px;
+    width: auto;
+    top: auto;
+    bottom: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

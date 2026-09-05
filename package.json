@@ -1,0 +1,23 @@
+{
+  "name": "morph-engine",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A small WebGL particle-morph kit: one field, any two image targets, a controlled cloud in between.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2",
+    "vitest": "^3.0.9"
+  }
+}
