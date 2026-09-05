@@ -66,7 +66,7 @@ Modern award-site work in 2026 uses the same primitive with scroll, music, and h
 - **Icons / Figma exports** — brand systems, product glyphs.
 - **Parametric math** — sphere, torus, spiral, wave, flower. No asset file.
 - **Video / webcam frames** — sample a frame, morph to the next or to a logo. “You become the mark.”
-- **3D mesh surfaces** — GLB/GLTF via surface sampling (TSL + Ionian + Nutricheck heart already did this). This is the honest 3D path: points on a surface, not a game character.
+- **3D mesh surfaces** — GLB/GLTF via surface sampling (TSL + Ionian already did this). This is the honest 3D path: points on a surface, not a game character.
 - **Multi-mesh atlas** — many sculptures resident, zero-cost switch (TSL).
 - **Data as form** — chart, map, waveform, table → points. Numbers become a silhouette.
 
@@ -119,7 +119,7 @@ These are the obvious portfolio / brand uses.
 - Gesture sculpture
 - Audio-reactive identity
 - 3D sculpture reel (drop GLBs)
-- Cinematic camera dolly while the field settles (Nutricheck organ-zoom was this)
+- Cinematic camera dolly while the field settles
 
 Useful, but they are still “look at this.” The next section is the broader bet.
 
@@ -139,7 +139,7 @@ The engine is a **state-change explainer**. People need to see “this became th
 ### Make abstract things graspable
 
 - **Data sculpture** — a score, a budget, a climate series, a sports season. The form *is* the number changing.
-- **System → part** — body → organ, city → building, machine → component. Nutricheck’s twin is one instance of this pattern, not the only one.
+- **System → part** — body → organ, city → building, machine → component.
 - **Privacy-preserving presence** — a real face or body sampled into particles so you can show “a person” without showing the person. Useful for health, HR, and any demo that cannot leak identity.
 - **Chaos → order** — messy uploads, inbox, raw logs settle into a tidy object. Onboarding and empty states that currently use spinners.
 
@@ -206,7 +206,7 @@ These are different companies that could share the same kernel.
 1. **Motion kit for the web** — npm + playground. Design engineers. Closest to what exists.
 2. **Explainer tool** — teachers, journalists, founders upload A/B and export a loop or embed. Useful first.
 3. **Brand QA** — drop two logos, score whether the cloud stays readable. Narrow and sellable.
-4. **Health / science twin** — body ↔ organ ↔ molecule. Nutricheck is one customer of this bet, not the repo.
+4. **Health / science twin** — body ↔ organ ↔ molecule.
 5. **Live performance** — music and gesture. Art first, utility second.
 6. **Privacy avatar** — identity-safe presence for calls, health, or support.
 

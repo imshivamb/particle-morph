@@ -13,8 +13,8 @@ execution: code
 
 ## Goal Capsule
 
-- **Objective:** Ship a personal, shareable particle-morph kit: a tiny engine plus a live playground with authored presets and drop-two-images, on a profile repo that is not Nutricheck.
-- **Product authority:** This plan. Nutricheck `/dev/particle-morph` is a frozen visual reference only and is not active scope.
+- **Objective:** Ship a personal, shareable particle-morph kit: a tiny engine plus a live playground with authored presets and drop-two-images, on a personal profile repo.
+- **Product authority:** This plan.
 - **Open blockers:** None.
 
 ---
@@ -23,20 +23,19 @@ execution: code
 
 ### Summary
 
-A named particle-morph kit on a personal GitHub repo with a live demo. Visitors first watch a few cinematic presets, then can drop two of their own images and morph them. The engine is one particle field that reorganizes between equal-length targets through a controlled cloud. The Nutricheck avatar-to-organ prototype stays untouched.
+A named particle-morph kit on a personal GitHub repo with a live demo. Visitors first watch a few cinematic presets, then can drop two of their own images and morph them. The engine is one particle field that reorganizes between equal-length targets through a controlled cloud.
 
 ### Problem Frame
 
-The working morph lives only at a private Nutricheck `/dev` route. It cannot be shown as independent craft, and its scene is hardcoded to avatar, heart, and lungs. Adjacent work (Ionian, TSL demos) is either too heavy or the wrong product. There is no small, owned engine a design engineer can demo, fork, or point to.
+There is no small, owned engine a design engineer can demo, fork, or point to. Adjacent work (Ionian, TSL demos) is either too heavy or the wrong product.
 
 ### Key Decisions
 
-- **Personal general kit, not a Nutricheck organ product.** (session-settled: user-directed — chosen over a Nutricheck-only organ engine: the work must live on a personal profile.) Governs R1, R2, R14
+- **Personal general kit, not a single-industry product.** (session-settled: user-directed — the work must live on a personal profile.) Governs R1, R2
 - **Playground is the v1 product.** (session-settled: user-directed — chosen over a code-only API: it has to be easy to demo and showcase.) Governs R6, R7, R8
 - **Morph kit + playground, not a reel or a creative platform.** (session-settled: user-approved — chosen over a presets-only film or a scene-file/export suite: taste in presets plus proof the engine is real.) Governs R6, R7, R9, R10
 - **Presets first, then drop-your-own in the same v1.** (session-settled: user-approved — chosen over upload-first and over deferring upload indefinitely: A or B were acceptable; upload-first was not.) Governs R7, R8
-- **Freeze the Nutricheck prototype.** (session-settled: user-directed — chosen over refactoring `/dev/particle-morph` in place: that demo stays Nutricheck’s.) Governs R14
-- **Rewrite from ideas; original public presets.** Do not paste Nutricheck shaders, scene code, twin URLs, or organ product assets into the public repo. Governs R2, R3
+- **Rewrite from ideas; original public presets.** Do not paste third-party product shaders, scene code, or brand assets into the public repo. Governs R2, R3
 
 <!-- ce-section: work-relationships -->
 ### How This Work Fits Together
@@ -44,13 +43,6 @@ The working morph lives only at a private Nutricheck `/dev` route. It cannot be 
 This plan owns the **personal morph kit and playground**. The broader picture below is current understanding, not a roadmap.
 
 - Personal particle morph kit (this plan)
-  - Nutricheck `/dev/particle-morph` prototype
-    - Can proceed independently of this plan
-    - Shares visual language (one field, cloud phases, semantic morph)
-    - Must not be modified by this work
-  - Nutricheck production twin / organ-dive integration
-    - Can proceed independently of this plan
-    - Still to decide whether a future Nutricheck plan consumes ideas from the personal kit
   - Later kit capabilities (mesh/text/SVG authoring, video export, shareable scene URLs)
     - Depends on this plan shipping
     - Deferred; not requirements here
@@ -65,15 +57,15 @@ This plan owns the **personal morph kit and playground**. The broader picture be
 
 **Home and ownership**
 
-- R1. The kit lives in a new personal repository, not inside Nutricheck app routes.
-- R2. Public presets and sample assets are original to the kit. They are not Nutricheck avatars, organs, or brand chrome.
-- R3. The engine is a rewrite of the proven morph ideas (fixed particle budget, equal-length targets, one field, progress-driven cloud). It is not a copy of Nutricheck product source.
+- R1. The kit lives in a personal repository.
+- R2. Public presets and sample assets are original to the kit. They are not borrowed product assets or brand chrome.
+- R3. The engine is a rewrite of the proven morph ideas (fixed particle budget, equal-length targets, one field, progress-driven cloud). It is not a copy of another product's source.
 
 **Engine**
 
 - R4. A show registers named targets. Product code calls a semantic morph (for example `morphTo("wordmark")`), never texture-layer indices.
 - R5. One particle population persists through a morph. Source and destination are equal-length targets. The midpoint reads as a controlled cloud, not a crossfade, explosion, or straight-line lerp.
-- R6. Look, camera, and timing belong to a show, not to the kernel. The kernel has no organ, avatar, or Nutricheck concepts.
+- R6. Look, camera, and timing belong to a show, not to the kernel. The kernel has no product-specific concepts.
 
 **Playground**
 
@@ -84,10 +76,6 @@ This plan owns the **personal morph kit and playground**. The broader picture be
 - R11. A documented public API exists so a developer can register targets and morph without using the playground UI.
 - R12. `prefers-reduced-motion` shows the selected target in a stable state and skips the cloud.
 - R13. The demo remains usable on a phone: one canvas, adaptive quality, pause when hidden.
-
-**Nutricheck boundary**
-
-- R14. Do not change `src/app/dev/particle-morph/` or production twin/organ UI.
 
 ```mermaid
 flowchart TB
@@ -159,18 +147,12 @@ flowchart TB
   - **When:** They change preset or drop images.
   - **Then:** The selected target appears in its stable state with no cloud transition.
 
-- AE5. Nutricheck prototype untouched
-  - **Covers:** R14
-  - **Given:** This kit is implemented in the personal repo.
-  - **When:** Nutricheck `/dev/particle-morph` is opened.
-  - **Then:** Behavior and files there are unchanged.
-
 ### Success Criteria
 
 - A stranger can watch two preset morphs and understand the trick within 30 seconds.
 - Drop-two-images works on a phone without looking like a debug page.
 - The README states the public API in a few lines a developer can copy.
-- The GitHub repo is postable: name, live demo link, original presets, no Nutricheck assets or product source.
+- The GitHub repo is postable: name, live demo link, original presets.
 
 ### Scope Boundaries
 
@@ -184,14 +166,12 @@ flowchart TB
 
 **Outside this product's identity**
 
-- A Nutricheck biological-twin or organ-dive feature.
 - An Ionian-scale GPGPU engine with mesh sequences, matcaps, and event buses.
 - A creative-tool company (accounts, galleries, community).
 
 ### Dependencies / Assumptions
 
-- The Nutricheck prototype at `src/app/dev/particle-morph/` remains the private look-dev reference for motion quality.
-- Ideas may be taken from `particle-morph-research/` and the 2026-08-30 Nutricheck spec; source code and product assets from Nutricheck must not ship in the personal repo.
+- Ideas may be taken from local `particle-morph-research/`. Those trees stay gitignored and do not ship in the public repo.
 - Research third-party licenses (Ionian, TSL demo, and others) still apply if any of those trees are copied; v1 should not vendor those repos.
 - Live-demo hosting exists (personal GitHub Pages, Vercel, or equivalent). Choice is planning, not product scope.
 
@@ -207,6 +187,5 @@ flowchart TB
 
 ### Sources / Research
 
-- Visual and motion reference (private): `docs/superpowers/specs/2026-08-30-particle-avatar-organ-morph-design.md`, `src/app/dev/particle-morph/`.
-- Original product vision (anatomy-specific; this kit generalizes the morph model only): `particle-morph-research/PROJECT_VISION.md`.
+- Local research notes (gitignored): `particle-morph-research/`.
 - Architectural contrast, not a dependency: Ionian (`particle-morph-research/ionian-main/`) — target independence and semantic progress; rejected for v1 because of weight and missing cloud phase.

@@ -4,7 +4,7 @@ A small WebGL kit that keeps **one field of points** and morphs that same field 
 
 It is not a crossfade and not two pictures stacked. An image, SVG, word, mesh, or procedural shape is sampled into the same particle target. Those points destablize, open into a cloud, and settle as the next form. The engine does not care where the target came from.
 
-This is not a Nutricheck product. The playground is a demo of the engine.
+The playground is a demo of the engine.
 
 ## Playground
 
