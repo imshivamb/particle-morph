@@ -5,6 +5,6 @@ export default defineConfig({
   publicDir: "public",
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["tests/**/*.test.ts"],
   },
 });

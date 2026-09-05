@@ -4,11 +4,13 @@ import {
   getParticleQualityConfig,
   type ParticleQuality,
 } from "./motion";
+import { clampProgress } from "./progress";
 import {
   PARTICLE_FRAGMENT_SHADER,
   PARTICLE_VERTEX_SHADER,
 } from "./shaders";
 import type { ParticleTarget } from "./target";
+import type { ParticleFieldState, RendererId } from "./types";
 
 export type MorphLook = {
   expansionStrength: number;
@@ -30,6 +32,7 @@ export type ParticleMorphEngineOptions = {
   reducedMotion: boolean;
   look?: Partial<MorphLook>;
   onTransitionStateChange?: (isTransitioning: boolean) => void;
+  onProgress?: (progress: number) => void;
   onError?: (message: string) => void;
 };
 
@@ -57,10 +60,13 @@ export class ParticleMorphEngine {
   private readonly points: THREE.Points;
   private readonly targets = new Map<string, ParticleTarget>();
   private readonly targetScales = new Map<string, THREE.Vector3>();
+  private readonly quality: ParticleQuality;
   private readonly reducedMotion: boolean;
   private readonly onTransitionStateChange?: (isTransitioning: boolean) => void;
+  private readonly onProgress?: (progress: number) => void;
   private readonly onError?: (message: string) => void;
   private look: MorphLook;
+  private rendererId: RendererId = "points";
   private activeTarget: string | null = null;
   private frameId: number | null = null;
   private paused = false;
@@ -72,8 +78,10 @@ export class ParticleMorphEngine {
 
   constructor(options: ParticleMorphEngineOptions) {
     const quality = getParticleQualityConfig(options.quality);
+    this.quality = options.quality;
     this.reducedMotion = options.reducedMotion;
     this.onTransitionStateChange = options.onTransitionStateChange;
+    this.onProgress = options.onProgress;
     this.onError = options.onError;
     this.look = { ...DEFAULT_LOOK, ...options.look };
     this.camera.position.z = 3.1;
@@ -172,14 +180,13 @@ export class ParticleMorphEngine {
     const durationSeconds = options.durationSeconds ?? 2.6;
 
     if (this.reducedMotion || durationSeconds <= 0) {
-      this.tween = null;
-      this.material.uniforms.uProgress.value = 1;
+      this.setProgress(1);
       this.camera.position.z = cameraZ;
       this.onTransitionStateChange?.(false);
       return;
     }
 
-    this.material.uniforms.uProgress.value = 0;
+    this.setProgress(0);
     this.tween = {
       startTime: performance.now(),
       durationMs: durationSeconds * 1000,
@@ -192,6 +199,24 @@ export class ParticleMorphEngine {
 
   getActiveTarget(): string | null {
     return this.activeTarget;
+  }
+
+  getProgress(): number {
+    return this.material.uniforms.uProgress.value as number;
+  }
+
+  getFieldState(): ParticleFieldState {
+    return {
+      activeTarget: this.activeTarget,
+      progress: this.getProgress(),
+      quality: this.quality,
+      renderer: this.rendererId,
+    };
+  }
+
+  setProgress(progress: number): void {
+    this.tween = null;
+    this.applyProgress(progress);
   }
 
   setLook(look: Partial<MorphLook>): void {
@@ -288,11 +313,15 @@ export class ParticleMorphEngine {
     const elapsed = time - this.tween.startTime;
     const linear = Math.min(1, elapsed / this.tween.durationMs);
     const eased = linear * linear * (3 - 2 * linear);
-    this.material.uniforms.uProgress.value =
-      this.tween.from + (this.tween.to - this.tween.from) * eased;
+    this.applyProgress(this.tween.from + (this.tween.to - this.tween.from) * eased);
     if (linear >= 1) {
       this.tween = null;
       this.onTransitionStateChange?.(false);
     }
+  }
+
+  private applyProgress(progress: number): void {
+    this.material.uniforms.uProgress.value = clampProgress(progress);
+    this.onProgress?.(this.getProgress());
   }
 }

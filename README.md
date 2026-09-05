@@ -1,8 +1,8 @@
 # Morph Engine
 
-A small WebGL particle-morph kit.
+A small WebGL kit that keeps **one field of points** and morphs that same field from one shape to another.
 
-One particle field. Any two image silhouettes. A controlled cloud in the middle.
+It is not a crossfade and not two pictures stacked. An image or SVG is sampled into a fixed number of points. Those points destablize, open into a cloud, and settle as the next form. Click **Mark / Nova / Glyph**, or drop two of your own images. Files stay in the browser.
 
 This is not a Nutricheck product. The playground is a demo of the engine.
 
@@ -44,9 +44,10 @@ engine.registerTarget("icon", await loadParticleTargetFromUrl("/b.svg", {
 }));
 
 engine.morphTo("icon");
+engine.setProgress(0.5);
 ```
 
-`morphTo` takes a semantic id. It does not take texture-layer indices.
+`morphTo` takes a semantic id. It does not take texture-layer indices. `setProgress` is the driver remote: buttons, sliders, and later scroll all write the same `0…1` value.
 
 Targets must have the same particle count. Look, camera, and duration stay on the show (`setLook`, `morphTo` options), not inside the kernel.
 

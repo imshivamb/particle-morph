@@ -26,6 +26,7 @@ const presetButtons = [
   ...document.querySelectorAll<HTMLButtonElement>("[data-preset]"),
 ];
 const dropZone = document.querySelector<HTMLElement>(".drop");
+const progressInput = document.querySelector<HTMLInputElement>("#progress");
 
 if (
   !stage ||
@@ -35,7 +36,8 @@ if (
   !targetInput ||
   !sourceName ||
   !targetName ||
-  !dropZone
+  !dropZone ||
+  !progressInput
 ) {
   throw new Error("Playground markup is missing");
 }
@@ -76,6 +78,9 @@ const engine = new ParticleMorphEngine({
         ? "Particles opening…"
         : "Settled. Pick another form.";
     }
+  },
+  onProgress: (progress) => {
+    progressInput.value = String(progress);
   },
   onError: (message) => {
     statusEl.textContent = message;
@@ -162,6 +167,11 @@ function assignDroppedFiles(files: File[]): void {
   }
   refreshCustomButton();
 }
+
+progressInput.addEventListener("input", () => {
+  engine.setProgress(Number(progressInput.value));
+  statusEl.textContent = "Progress is driven by the slider.";
+});
 
 dropZone.addEventListener("dragover", (event) => {
   event.preventDefault();

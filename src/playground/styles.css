@@ -169,9 +169,27 @@ h1 {
   margin-top: 12px;
 }
 
-.status {
+.progress {
   left: 28px;
   bottom: 84px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: min(18rem, calc(100vw - 56px));
+  color: var(--mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.progress input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.status {
+  left: 28px;
+  bottom: 118px;
   margin: 0;
   color: var(--mute);
   font-size: 0.82rem;
@@ -210,11 +228,19 @@ h1 {
     top: 168px;
   }
 
+  .progress,
   .status {
     left: 18px;
     right: 18px;
-    top: 220px;
     bottom: auto;
+  }
+
+  .status {
+    top: 220px;
+  }
+
+  .progress {
+    top: 248px;
   }
 
   .drop {

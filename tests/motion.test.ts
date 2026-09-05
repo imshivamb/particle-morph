@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   resolveParticleQuality,
   sampleParticleMotion,
-} from "./motion";
+} from "../src/engine/motion";
 
 describe("sampleParticleMotion", () => {
   it("starts settled on the source with no cloud", () => {

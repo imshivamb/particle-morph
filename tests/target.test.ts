@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildParticleTarget, type PixelSource } from "./target";
+import { buildParticleTarget, type PixelSource } from "../src/engine/target";
 
 function solidShape(width: number, height: number): PixelSource {
   const data = new Uint8ClampedArray(width * height * 4);
