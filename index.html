@@ -29,10 +29,28 @@
         </p>
       </header>
 
-      <nav class="chrome presets" aria-label="Authored presets">
-        <button type="button" data-preset="mark" aria-pressed="true">Mark</button>
-        <button type="button" data-preset="nova">Nova</button>
-        <button type="button" data-preset="glyph">Glyph</button>
+      <section class="chrome renderer-panel" aria-label="Renderer">
+        <p class="drop-title">Renderer</p>
+        <nav class="renderers" aria-label="Renderer skins">
+          <button type="button" data-renderer="points" aria-pressed="true">Points</button>
+          <button type="button" data-renderer="sprites">Sprites</button>
+          <button type="button" data-renderer="shards">Shards</button>
+        </nav>
+        <label class="tune">
+          <span>Size</span>
+          <input id="renderer-size" type="range" min="0.5" max="1.5" step="0.05" value="1" />
+        </label>
+        <label class="tune">
+          <span>Opacity</span>
+          <input id="renderer-opacity" type="range" min="0.35" max="1" step="0.05" value="0.675" />
+        </label>
+      </section>
+
+      <nav class="chrome presets" aria-label="Source targets">
+        <button type="button" data-source="image" aria-pressed="true">Image</button>
+        <button type="button" data-source="text">Text</button>
+        <button type="button" data-source="mesh">3D</button>
+        <button type="button" data-source="sphere">Sphere</button>
       </nav>
 
       <label class="chrome progress">
@@ -47,21 +65,81 @@
         />
       </label>
 
-      <section class="chrome drop" aria-label="Drop your own images">
-        <p class="drop-title">Or drop two images</p>
-        <div class="slots">
-          <label class="slot">
-            <span>A</span>
-            <input id="file-a" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" />
-            <em id="name-a">Source</em>
-          </label>
-          <label class="slot">
-            <span>B</span>
-            <input id="file-b" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" />
-            <em id="name-b">Target</em>
-          </label>
+      <section class="chrome drop" aria-label="Target">
+        <p class="drop-title">Target</p>
+        <nav class="renderers kinds" aria-label="Target type">
+          <button type="button" data-kind="image" aria-pressed="true">Image</button>
+          <button type="button" data-kind="text">Text</button>
+          <button type="button" data-kind="mesh">3D</button>
+          <button type="button" data-kind="shape">Shape</button>
+        </nav>
+
+        <div data-panel="image">
+          <nav class="renderers" aria-label="Image presets">
+            <button type="button" data-preset="mark" aria-pressed="true">Mark</button>
+            <button type="button" data-preset="nova">Nova</button>
+            <button type="button" data-preset="glyph">Glyph</button>
+          </nav>
+          <div class="slots">
+            <label class="slot">
+              <span>A</span>
+              <input id="file-a" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" />
+              <em id="name-a">Source</em>
+            </label>
+            <label class="slot">
+              <span>B</span>
+              <input id="file-b" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" />
+              <em id="name-b">Target</em>
+            </label>
+          </div>
+          <button type="button" id="play-custom" disabled>Morph A → B</button>
         </div>
-        <button type="button" id="play-custom" disabled>Morph A → B</button>
+
+        <div data-panel="text" hidden>
+          <label class="field">
+            <span>Text</span>
+            <input id="text-value" type="text" value="HELLO" maxlength="64" />
+            <small class="hint">Up to 64 characters. Longer lines wrap.</small>
+          </label>
+          <div class="field-row">
+            <label class="field">
+              <span>Weight</span>
+              <select id="text-weight">
+                <option value="500">Medium</option>
+                <option value="600" selected>Semibold</option>
+                <option value="700">Bold</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Size</span>
+              <input id="text-size" type="range" min="96" max="220" step="4" value="160" />
+            </label>
+          </div>
+          <button type="button" id="apply-text">Set Text Target</button>
+        </div>
+
+        <div data-panel="mesh" hidden>
+          <p class="hint">Surface-sampled mesh. Drop a GLB or use the built-in knot.</p>
+          <label class="slot mesh-slot">
+            <span>GLB / GLTF</span>
+            <input id="file-mesh" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" />
+            <em id="name-mesh">Drop a model</em>
+          </label>
+          <button type="button" id="use-knot">Use Knot</button>
+        </div>
+
+        <div data-panel="shape" hidden>
+          <nav class="shape-grid" aria-label="Procedural shapes">
+            <button type="button" data-shape="sphere" aria-pressed="true">Sphere</button>
+            <button type="button" data-shape="torus">Torus</button>
+            <button type="button" data-shape="cube">Cube</button>
+            <button type="button" data-shape="cylinder">Cylinder</button>
+            <button type="button" data-shape="pyramid">Pyramid</button>
+            <button type="button" data-shape="helix">Helix</button>
+            <button type="button" data-shape="spiral">Spiral</button>
+            <button type="button" data-shape="wave">Wave</button>
+          </nav>
+        </div>
       </section>
 
       <p id="status" class="chrome status" role="status">Loading stage…</p>

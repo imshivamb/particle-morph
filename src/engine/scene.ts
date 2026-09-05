@@ -5,25 +5,27 @@ import {
   type ParticleQuality,
 } from "./motion";
 import { clampProgress } from "./progress";
+import { createParticleRenderer } from "./renderers";
+import type { ParticleRenderer } from "./renderers/types";
 import {
-  PARTICLE_FRAGMENT_SHADER,
-  PARTICLE_VERTEX_SHADER,
-} from "./shaders";
-import type { ParticleTarget } from "./target";
-import type { ParticleFieldState, RendererId } from "./types";
+  assertSameTargetCount,
+  targetDepthSpan,
+  type ParticleTarget,
+} from "./target";
+import type {
+  MorphLook,
+  ParticleFieldState,
+  RendererConfig,
+  RendererId,
+} from "./types";
 
-export type MorphLook = {
-  expansionStrength: number;
-  turbulenceStrength: number;
-  synchronization: number;
-  particleSize: number;
-  glow: number;
-};
+export type { MorphLook, RendererConfig } from "./types";
 
 export type MorphToOptions = {
   durationSeconds?: number;
   cameraZ?: number;
   scale?: [number, number, number];
+  renderer?: RendererId;
 };
 
 export type ParticleMorphEngineOptions = {
@@ -31,6 +33,7 @@ export type ParticleMorphEngineOptions = {
   quality: ParticleQuality;
   reducedMotion: boolean;
   look?: Partial<MorphLook>;
+  renderer?: RendererId;
   onTransitionStateChange?: (isTransitioning: boolean) => void;
   onProgress?: (progress: number) => void;
   onError?: (message: string) => void;
@@ -44,6 +47,11 @@ const DEFAULT_LOOK: MorphLook = {
   glow: 0.44,
 };
 
+const DEFAULT_RENDERER_CONFIG: RendererConfig = {
+  size: 1,
+  opacity: 0.675,
+};
+
 type Tween = {
   startTime: number;
   durationMs: number;
@@ -52,12 +60,9 @@ type Tween = {
 };
 
 export class ParticleMorphEngine {
-  private readonly renderer: THREE.WebGLRenderer;
+  private readonly webgl: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.08, 24);
-  private readonly geometry = new THREE.BufferGeometry();
-  private readonly material: THREE.ShaderMaterial;
-  private readonly points: THREE.Points;
   private readonly targets = new Map<string, ParticleTarget>();
   private readonly targetScales = new Map<string, THREE.Vector3>();
   private readonly quality: ParticleQuality;
@@ -66,12 +71,24 @@ export class ParticleMorphEngine {
   private readonly onProgress?: (progress: number) => void;
   private readonly onError?: (message: string) => void;
   private look: MorphLook;
-  private rendererId: RendererId = "points";
+  private readonly rendererLooks: Record<RendererId, RendererConfig> = {
+    points: { ...DEFAULT_RENDERER_CONFIG },
+    sprites: { ...DEFAULT_RENDERER_CONFIG },
+    shards: { ...DEFAULT_RENDERER_CONFIG },
+  };
+  private skin: ParticleRenderer;
+  private field: { source: ParticleTarget; destination: ParticleTarget } | null =
+    null;
+  private sourceScale = new THREE.Vector3(1, 1, 1);
+  private targetScale = new THREE.Vector3(1, 1, 1);
+  private progress = 1;
+  private viewport = { width: 1, height: 1 };
   private activeTarget: string | null = null;
   private frameId: number | null = null;
   private paused = false;
   private disposed = false;
   private tween: Tween | null = null;
+  private readonly replacedFrom = new Map<string, ParticleTarget>();
   private visibilityHandler = (): void => {
     this.setPaused(document.hidden);
   };
@@ -84,41 +101,28 @@ export class ParticleMorphEngine {
     this.onProgress = options.onProgress;
     this.onError = options.onError;
     this.look = { ...DEFAULT_LOOK, ...options.look };
-    this.camera.position.z = 3.1;
+    this.camera.position.set(0, 0, 3.1);
+    this.camera.lookAt(0, 0, 0);
 
-    this.renderer = new THREE.WebGLRenderer({
+    this.webgl = new THREE.WebGLRenderer({
       canvas: options.canvas,
       alpha: true,
       antialias: false,
       powerPreference: "high-performance",
     });
-    this.renderer.setClearColor(0x000000, 0);
-    this.renderer.setPixelRatio(
+    this.webgl.setClearColor(0x000000, 0);
+    this.webgl.setPixelRatio(
       Math.min(window.devicePixelRatio || 1, quality.maxDpr),
     );
 
-    this.material = new THREE.ShaderMaterial({
-      vertexShader: PARTICLE_VERTEX_SHADER,
-      fragmentShader: PARTICLE_FRAGMENT_SHADER,
-      uniforms: {
-        uProgress: { value: 0 },
-        uTime: { value: 0 },
-        uExpansionStrength: { value: this.look.expansionStrength },
-        uTurbulenceStrength: { value: this.look.turbulenceStrength },
-        uSynchronization: { value: this.look.synchronization },
-        uParticleSize: { value: this.look.particleSize },
-        uDpr: { value: this.renderer.getPixelRatio() },
-        uGlow: { value: this.look.glow },
-        uSourceScale: { value: new THREE.Vector3(1, 1, 1) },
-        uTargetScale: { value: new THREE.Vector3(1, 1, 1) },
-      },
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-
-    this.points = new THREE.Points(this.geometry, this.material);
-    this.scene.add(this.points);
+    const initialRenderer = options.renderer ?? "points";
+    this.skin = createParticleRenderer(
+      initialRenderer,
+      this.look,
+      this.rendererLooks[initialRenderer],
+      this.webgl.getPixelRatio(),
+    );
+    this.scene.add(this.skin.object);
     options.canvas.addEventListener("webglcontextlost", this.handleContextLost);
     document.addEventListener("visibilitychange", this.visibilityHandler);
     this.startLoop();
@@ -130,26 +134,31 @@ export class ParticleMorphEngine {
     scale: [number, number, number] = [1, 1, 1],
   ): void {
     const existing = this.targets.values().next().value;
-    if (existing && existing.positions.length !== target.positions.length) {
-      throw new Error("Particle targets must contain equal position counts");
+    if (existing) {
+      assertSameTargetCount(existing, target);
     }
+    const previous = this.targets.get(id);
     this.targets.set(id, target);
     this.targetScales.set(id, new THREE.Vector3(...scale));
+    if (previous && this.activeTarget === id) {
+      this.replacedFrom.set(id, previous);
+    }
 
     if (!this.activeTarget) {
       this.activeTarget = id;
-      this.writeBuffers(target, target);
-      this.material.uniforms.uProgress.value = 1;
-      this.material.uniforms.uSourceScale.value.copy(
-        this.targetScales.get(id) ?? new THREE.Vector3(1, 1, 1),
-      );
-      this.material.uniforms.uTargetScale.value.copy(
-        this.targetScales.get(id) ?? new THREE.Vector3(1, 1, 1),
-      );
+      this.writeField(target, target);
+      this.sourceScale.copy(this.targetScales.get(id) ?? new THREE.Vector3(1, 1, 1));
+      this.targetScale.copy(this.sourceScale);
+      this.syncSkin();
+      this.applyProgress(1);
     }
   }
 
   morphTo(id: string, options: MorphToOptions = {}): void {
+    if (options.renderer) {
+      this.setRenderer(options.renderer);
+    }
+
     const destination = this.targets.get(id);
     if (!destination) {
       this.onError?.(`Unknown morph target "${id}"`);
@@ -160,28 +169,33 @@ export class ParticleMorphEngine {
     }
 
     const sourceId = this.activeTarget;
-    if (sourceId === id && !this.tween) {
+    const replaced = this.replacedFrom.get(id);
+    this.replacedFrom.delete(id);
+    if (sourceId === id && !this.tween && !replaced) {
       this.onTransitionStateChange?.(false);
       return;
     }
 
     const source =
-      (sourceId ? this.targets.get(sourceId) : destination) ?? destination;
-    this.writeBuffers(source, destination);
-    this.material.uniforms.uSourceScale.value.copy(
+      replaced ??
+      (sourceId ? this.targets.get(sourceId) : destination) ??
+      destination;
+    this.writeField(source, destination);
+    this.sourceScale.copy(
       this.targetScales.get(sourceId ?? id) ?? new THREE.Vector3(1, 1, 1),
     );
-    this.material.uniforms.uTargetScale.value.copy(
+    this.targetScale.copy(
       this.targetScales.get(id) ?? new THREE.Vector3(1, 1, 1),
     );
     this.activeTarget = id;
+    this.syncSkin();
 
     const cameraZ = options.cameraZ ?? 3.1;
     const durationSeconds = options.durationSeconds ?? 2.6;
+    this.frameCamera(destination, cameraZ);
 
     if (this.reducedMotion || durationSeconds <= 0) {
       this.setProgress(1);
-      this.camera.position.z = cameraZ;
       this.onTransitionStateChange?.(false);
       return;
     }
@@ -193,8 +207,16 @@ export class ParticleMorphEngine {
       from: 0,
       to: 1,
     };
-    this.camera.position.z = cameraZ;
     this.onTransitionStateChange?.(true);
+  }
+
+  private frameCamera(target: ParticleTarget, cameraZ: number): void {
+    if (targetDepthSpan(target) > 0.42) {
+      this.camera.position.set(0.92, 0.62, Math.max(2.55, cameraZ * 0.92));
+    } else {
+      this.camera.position.set(0, 0, cameraZ);
+    }
+    this.camera.lookAt(0, 0, 0);
   }
 
   getActiveTarget(): string | null {
@@ -202,16 +224,45 @@ export class ParticleMorphEngine {
   }
 
   getProgress(): number {
-    return this.material.uniforms.uProgress.value as number;
+    return this.progress;
   }
 
   getFieldState(): ParticleFieldState {
     return {
       activeTarget: this.activeTarget,
-      progress: this.getProgress(),
+      progress: this.progress,
       quality: this.quality,
-      renderer: this.rendererId,
+      renderer: this.skin.id,
     };
+  }
+
+  getRenderer(): RendererId {
+    return this.skin.id;
+  }
+
+  getRendererConfig(id: RendererId = this.skin.id): RendererConfig {
+    return { ...this.rendererLooks[id] };
+  }
+
+  setRenderer(id: RendererId, config: Partial<RendererConfig> = {}): void {
+    this.rendererLooks[id] = { ...this.rendererLooks[id], ...config };
+    const look = this.rendererLooks[id];
+    if (id === this.skin.id) {
+      this.skin.setConfig(look);
+      return;
+    }
+
+    this.scene.remove(this.skin.object);
+    this.skin.dispose();
+    this.skin = createParticleRenderer(
+      id,
+      this.look,
+      look,
+      this.webgl.getPixelRatio(),
+    );
+    this.scene.add(this.skin.object);
+    this.syncSkin();
+    this.skin.setProgress(this.progress);
   }
 
   setProgress(progress: number): void {
@@ -221,20 +272,18 @@ export class ParticleMorphEngine {
 
   setLook(look: Partial<MorphLook>): void {
     this.look = { ...this.look, ...look };
-    this.material.uniforms.uExpansionStrength.value = this.look.expansionStrength;
-    this.material.uniforms.uTurbulenceStrength.value =
-      this.look.turbulenceStrength;
-    this.material.uniforms.uSynchronization.value = this.look.synchronization;
-    this.material.uniforms.uParticleSize.value = this.look.particleSize;
-    this.material.uniforms.uGlow.value = this.look.glow;
+    this.skin.setLook(this.look);
   }
 
   resize(width: number, height: number): void {
     const safeWidth = Math.max(1, width);
     const safeHeight = Math.max(1, height);
+    this.viewport = { width: safeWidth, height: safeHeight };
     this.camera.aspect = safeWidth / safeHeight;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(safeWidth, safeHeight, false);
+    this.webgl.setSize(safeWidth, safeHeight, false);
+    this.skin.setViewport(safeWidth, safeHeight);
+    this.skin.setDpr(this.webgl.getPixelRatio());
   }
 
   setPaused(paused: boolean): void {
@@ -253,38 +302,30 @@ export class ParticleMorphEngine {
     this.disposed = true;
     this.tween = null;
     if (this.frameId !== null) cancelAnimationFrame(this.frameId);
-    this.renderer.domElement.removeEventListener(
+    this.webgl.domElement.removeEventListener(
       "webglcontextlost",
       this.handleContextLost,
     );
     document.removeEventListener("visibilitychange", this.visibilityHandler);
-    this.scene.remove(this.points);
-    this.geometry.dispose();
-    this.material.dispose();
-    this.renderer.dispose();
+    this.scene.remove(this.skin.object);
+    this.skin.dispose();
+    this.webgl.dispose();
   }
 
-  private writeBuffers(source: ParticleTarget, destination: ParticleTarget): void {
-    this.geometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(source.positions, 3),
-    );
-    this.geometry.setAttribute(
-      "aTargetPosition",
-      new THREE.BufferAttribute(destination.positions, 3),
-    );
-    this.geometry.setAttribute(
-      "aSourceColor",
-      new THREE.BufferAttribute(source.colors, 3),
-    );
-    this.geometry.setAttribute(
-      "aTargetColor",
-      new THREE.BufferAttribute(destination.colors, 3),
-    );
-    this.geometry.setAttribute(
-      "aSeed",
-      new THREE.BufferAttribute(source.seeds, 1),
-    );
+  private writeField(source: ParticleTarget, destination: ParticleTarget): void {
+    this.field = { source, destination };
+  }
+
+  private syncSkin(): void {
+    if (!this.field) return;
+    this.skin.setField(this.field);
+    this.skin.setSourceScale(this.sourceScale);
+    this.skin.setTargetScale(this.targetScale);
+    this.skin.setViewport(this.viewport.width, this.viewport.height);
+    this.skin.setDpr(this.webgl.getPixelRatio());
+    this.skin.setLook(this.look);
+    this.skin.setConfig(this.rendererLooks[this.skin.id]);
+    this.skin.setProgress(this.progress);
   }
 
   private readonly handleContextLost = (event: Event): void => {
@@ -300,8 +341,8 @@ export class ParticleMorphEngine {
       this.frameId = null;
       if (this.disposed || this.paused) return;
       this.stepTween(time);
-      this.material.uniforms.uTime.value = time / 1000;
-      this.renderer.render(this.scene, this.camera);
+      this.skin.setTime(time / 1000);
+      this.webgl.render(this.scene, this.camera);
       this.frameId = requestAnimationFrame(render);
     };
 
@@ -321,7 +362,8 @@ export class ParticleMorphEngine {
   }
 
   private applyProgress(progress: number): void {
-    this.material.uniforms.uProgress.value = clampProgress(progress);
-    this.onProgress?.(this.getProgress());
+    this.progress = clampProgress(progress);
+    this.skin.setProgress(this.progress);
+    this.onProgress?.(this.progress);
   }
 }

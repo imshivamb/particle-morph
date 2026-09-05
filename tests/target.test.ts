@@ -29,6 +29,8 @@ describe("buildParticleTarget", () => {
     expect(target.positions.length).toBe(64 * 3);
     expect(target.colors.length).toBe(64 * 3);
     expect(target.seeds.length).toBe(64);
+    expect(target.normals.length).toBe(64 * 3);
+    expect(target.count).toBe(64);
   });
 
   it("is deterministic for the same image and seed", () => {
@@ -67,5 +69,30 @@ describe("buildParticleTarget", () => {
       expect(target.positions[index]).toBeGreaterThanOrEqual(-0.2);
       expect(target.positions[index]).toBeLessThanOrEqual(0.2);
     }
+  });
+
+  it("fits a wide silhouette without stretching height to the same span", () => {
+    const data = new Uint8ClampedArray(64 * 16 * 4);
+    for (let x = 4; x < 60; x += 1) {
+      for (let y = 6; y < 10; y += 1) {
+        const offset = (y * 64 + x) * 4;
+        data[offset] = 255;
+        data[offset + 1] = 255;
+        data[offset + 2] = 255;
+        data[offset + 3] = 255;
+      }
+    }
+    const target = buildParticleTarget(
+      { width: 64, height: 16, data },
+      { particleCount: 40, seed: 2, alphaThreshold: 20, depth: 0.1 },
+    );
+    let maxX = 0;
+    let maxY = 0;
+    for (let index = 0; index < target.count; index += 1) {
+      maxX = Math.max(maxX, Math.abs(target.positions[index * 3] ?? 0));
+      maxY = Math.max(maxY, Math.abs(target.positions[index * 3 + 1] ?? 0));
+    }
+    expect(maxX).toBeGreaterThan(maxY);
+    expect(maxX).toBeGreaterThan(0.7);
   });
 });

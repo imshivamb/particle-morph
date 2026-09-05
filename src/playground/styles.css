@@ -87,8 +87,111 @@ h1 {
   gap: 8px;
 }
 
+.renderer-panel {
+  right: 28px;
+  top: 28px;
+  width: min(18rem, calc(100vw - 56px));
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+}
+
+.renderers {
+  display: flex;
+  gap: 8px;
+}
+
+.tune {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tune input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.field,
+.field-row {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.field-row {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field span,
+.hint {
+  color: var(--mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hint {
+  margin: 12px 0 0;
+  line-height: 1.45;
+}
+
+.field input[type="text"],
+.field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(7, 8, 12, 0.45);
+  color: var(--ink);
+  padding: 10px 12px;
+  font: 500 0.92rem Outfit, sans-serif;
+}
+
+.kinds {
+  flex-wrap: wrap;
+}
+
+.shape-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  padding-bottom: 2px;
+}
+
+.field small.hint {
+  display: block;
+  margin-top: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.mesh-slot {
+  margin-top: 12px;
+}
+
+[data-panel="image"] .slots {
+  margin-top: 12px;
+}
+
+[data-panel="image"] .renderers {
+  flex-wrap: wrap;
+}
+
 .presets button,
-#play-custom {
+.renderers button,
+.shape-grid button,
+#play-custom,
+#apply-text,
+#use-knot {
   appearance: none;
   border: 1px solid var(--line);
   background: var(--glass);
@@ -101,8 +204,14 @@ h1 {
 }
 
 .presets button[aria-pressed="true"],
+.renderers button[aria-pressed="true"],
+.shape-grid button[aria-pressed="true"],
 #play-custom:not(:disabled):hover,
-.presets button:hover {
+#apply-text:hover,
+#use-knot:hover,
+.presets button:hover,
+.renderers button:hover,
+.shape-grid button:hover {
   border-color: rgba(158, 242, 255, 0.5);
   color: var(--accent);
 }
@@ -116,6 +225,8 @@ h1 {
   right: 28px;
   bottom: 28px;
   width: min(22rem, calc(100vw - 56px));
+  max-height: calc(100vh - 220px);
+  overflow: auto;
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -164,7 +275,9 @@ h1 {
   display: none;
 }
 
-#play-custom {
+#play-custom,
+#apply-text,
+#use-knot {
   width: 100%;
   margin-top: 12px;
 }
@@ -202,6 +315,7 @@ h1 {
 
   .top,
   .presets,
+  .renderer-panel,
   .drop,
   .status {
     position: absolute;
@@ -221,11 +335,20 @@ h1 {
     display: none;
   }
 
-  .presets {
+  .presets,
+  .renderer-panel {
     left: 18px;
     right: 18px;
     bottom: auto;
+  }
+
+  .presets {
     top: 168px;
+  }
+
+  .renderer-panel {
+    top: 214px;
+    width: auto;
   }
 
   .progress,
@@ -236,11 +359,11 @@ h1 {
   }
 
   .status {
-    top: 220px;
+    top: 390px;
   }
 
   .progress {
-    top: 248px;
+    top: 418px;
   }
 
   .drop {
