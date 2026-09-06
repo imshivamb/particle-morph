@@ -5,6 +5,10 @@
   --line: rgba(244, 241, 234, 0.16);
   --glass: rgba(10, 12, 16, 0.42);
   --accent: #9ef2ff;
+  --driver: #f3c27a;
+  --motion: #9ef2ff;
+  --source: #f4f1ea;
+  --preset: #c4b5fd;
 }
 
 * {
@@ -80,10 +84,53 @@ h1 {
   line-height: 1.5;
 }
 
-.presets {
+@media (max-height: 920px) {
+  .lede {
+    display: none;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 4.2vw, 2.8rem);
+  }
+}
+
+.left-stack {
   left: 28px;
   bottom: 28px;
   display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: min(28rem, calc(100vw - 56px));
+}
+
+.group-label {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.group-label span {
+  margin-left: 8px;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.78;
+}
+
+.group-driver .group-label {
+  color: var(--driver);
+}
+
+.group-motion .group-label {
+  color: var(--motion);
+}
+
+.presets,
+.drivers,
+.motions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -159,6 +206,34 @@ h1 {
   flex-wrap: wrap;
 }
 
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.strength input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+html.scroll-drive,
+html.scroll-drive body,
+html.scroll-drive #app {
+  height: auto;
+  min-height: 100%;
+  overflow: auto;
+}
+
+#scroll-space {
+  height: 220vh;
+  pointer-events: none;
+}
+
 .shape-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -179,15 +254,21 @@ h1 {
 }
 
 [data-panel="image"] .slots {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
-[data-panel="image"] .renderers {
+.presets-row {
+  display: flex;
   flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .presets button,
 .renderers button,
+.motions button,
+.drivers button,
+.presets-row button,
 .shape-grid button,
 #play-custom,
 #apply-text,
@@ -203,17 +284,56 @@ h1 {
   cursor: pointer;
 }
 
-.presets button[aria-pressed="true"],
+.drivers button {
+  border-color: rgba(243, 194, 122, 0.28);
+}
+
+.motions button {
+  border-color: rgba(158, 242, 255, 0.22);
+}
+
+.presets button {
+  border-color: rgba(244, 241, 234, 0.22);
+}
+
+.presets-row button {
+  border-color: rgba(196, 181, 253, 0.32);
+  min-width: 5.4rem;
+}
+
 .renderers button[aria-pressed="true"],
 .shape-grid button[aria-pressed="true"],
 #play-custom:not(:disabled):hover,
 #apply-text:hover,
 #use-knot:hover,
-.presets button:hover,
 .renderers button:hover,
 .shape-grid button:hover {
   border-color: rgba(158, 242, 255, 0.5);
   color: var(--accent);
+}
+
+.drivers button:hover,
+.drivers button[aria-pressed="true"] {
+  border-color: rgba(243, 194, 122, 0.7);
+  color: var(--driver);
+}
+
+.motions button:hover,
+.motions button[aria-pressed="true"] {
+  border-color: rgba(158, 242, 255, 0.6);
+  color: var(--motion);
+}
+
+.presets button:hover,
+.presets button[aria-pressed="true"] {
+  border-color: rgba(244, 241, 234, 0.55);
+  color: var(--source);
+}
+
+.presets-row button:hover,
+.presets-row button[aria-pressed="true"] {
+  border-color: rgba(196, 181, 253, 0.75);
+  color: var(--preset);
 }
 
 #play-custom:disabled {
@@ -283,12 +403,9 @@ h1 {
 }
 
 .progress {
-  left: 28px;
-  bottom: 84px;
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: min(18rem, calc(100vw - 56px));
   color: var(--mute);
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -301,11 +418,14 @@ h1 {
 }
 
 .status {
-  left: 28px;
-  bottom: 118px;
   margin: 0;
   color: var(--mute);
   font-size: 0.82rem;
+}
+
+body.pointer-drive,
+html.pointer-drive {
+  cursor: crosshair;
 }
 
 @media (max-width: 720px) {
@@ -314,10 +434,9 @@ h1 {
   }
 
   .top,
-  .presets,
+  .left-stack,
   .renderer-panel,
-  .drop,
-  .status {
+  .drop {
     position: absolute;
   }
 
@@ -335,35 +454,19 @@ h1 {
     display: none;
   }
 
-  .presets,
   .renderer-panel {
     left: 18px;
     right: 18px;
-    bottom: auto;
-  }
-
-  .presets {
     top: 168px;
-  }
-
-  .renderer-panel {
-    top: 214px;
     width: auto;
   }
 
-  .progress,
-  .status {
+  .left-stack {
     left: 18px;
     right: 18px;
+    top: 360px;
     bottom: auto;
-  }
-
-  .status {
-    top: 390px;
-  }
-
-  .progress {
-    top: 418px;
+    max-width: none;
   }
 
   .drop {

@@ -48,7 +48,14 @@ function layoutLines(value: string): string[] {
     const domain = value.slice(at);
     return [...wrapText(local, 14), ...wrapText(domain, 16)];
   }
-  return wrapText(value, value.length > 18 ? 14 : 18);
+  if (value.length > 28) return wrapText(value, 10);
+  if (value.length > 16) return wrapText(value, 12);
+  return wrapText(value, 18);
+}
+
+function isDenseCopy(value: string, lines: string[]): boolean {
+  const glyphs = value.replace(/\s/g, "").length;
+  return glyphs > 10 || lines.length > 2;
 }
 
 function lineWidth(
@@ -82,8 +89,10 @@ function rasterizeText(text: string, options: TextTargetOptions): ImageData {
     throw new Error("Text target could not be rasterized");
   }
 
-  let letterSpacing = options.letterSpacing ?? Math.round(fontSize * 0.05);
-  let pad = Math.ceil(fontSize * 0.28);
+  const dense = isDenseCopy(value, lines);
+  let letterSpacing =
+    options.letterSpacing ?? Math.round(fontSize * (dense ? 0.09 : 0.05));
+  let pad = Math.ceil(fontSize * (dense ? 0.34 : 0.28));
   let textWidth = 1;
   for (let attempt = 0; attempt < 8; attempt += 1) {
     context.font = `${weight} ${fontSize}px ${fontFamily}`;
@@ -92,13 +101,14 @@ function rasterizeText(text: string, options: TextTargetOptions): ImageData {
     for (const line of lines) {
       textWidth = Math.max(textWidth, lineWidth(context, line, letterSpacing));
     }
-    pad = Math.ceil(fontSize * 0.28);
+    pad = Math.ceil(fontSize * (dense ? 0.34 : 0.28));
     const neededW = textWidth + pad * 2;
     const neededH = lines.length * fontSize * lineHeight + pad * 2;
     if (neededW <= MAX_RASTER && neededH <= MAX_RASTER) break;
     const scale = Math.min(MAX_RASTER / neededW, MAX_RASTER / neededH) * 0.96;
     fontSize = Math.max(28, Math.floor(fontSize * scale));
-    letterSpacing = options.letterSpacing ?? Math.round(fontSize * 0.05);
+    letterSpacing =
+      options.letterSpacing ?? Math.round(fontSize * (dense ? 0.09 : 0.05));
   }
 
   canvas.width = Math.max(32, Math.ceil(textWidth + pad * 2));
@@ -109,11 +119,19 @@ function rasterizeText(text: string, options: TextTargetOptions): ImageData {
   context.textAlign = align;
   context.textBaseline = "middle";
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = options.color ?? "#c5d3df";
+  context.lineJoin = "round";
+  context.miterLimit = 2;
+  const fillColor = options.color ?? (dense ? "#6f7b88" : "#b7c4d0");
+  context.fillStyle = fillColor;
   const originX =
     align === "left" ? pad : align === "right" ? canvas.width - pad : canvas.width / 2;
   lines.forEach((line, index) => {
     const y = pad + fontSize * lineHeight * (index + 0.5);
+    if (dense) {
+      context.strokeStyle = "#d7e0ea";
+      context.lineWidth = Math.max(2.2, fontSize * 0.07);
+      context.strokeText(line, originX, y);
+    }
     context.fillText(line, originX, y);
   });
 
@@ -124,16 +142,20 @@ export function createTextTarget(
   text: string,
   options: TextTargetOptions = {},
 ): ParticleTarget {
+  const raw = text.trim();
+  const value = raw.slice(0, MAX_TEXT_CHARS);
+  const dense = isDenseCopy(value, layoutLines(value));
   const image = rasterizeText(text, options);
   return buildParticleTarget(
     { width: image.width, height: image.height, data: image.data },
     {
       particleCount: resolveParticleCount(options),
       seed: resolveSeed(options),
-      alphaThreshold: options.alphaThreshold ?? 90,
+      alphaThreshold: options.alphaThreshold ?? (dense ? 80 : 90),
       depth: options.depth ?? 0.08,
-      jitter: 0.16,
+      jitter: dense ? 0.07 : 0.1,
       extent: 0.88,
+      preferEdges: true,
     },
   );
 }

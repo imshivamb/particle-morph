@@ -1,6 +1,8 @@
 export { Scree } from "./scene";
 export type { MorphToOptions, ScreeOptions } from "./scene";
-export { clampProgress } from "./progress";
+export { clampProgress, shouldPlayAutoTween } from "./progress";
+export { scrollProgress } from "./drivers/scroll-progress";
+export { fieldPointFromClient } from "./drivers/pointer-from-event";
 export {
   getParticleQualityConfig,
   resolveParticleQuality,
@@ -12,10 +14,22 @@ export {
   RENDERER_IDS,
   resolveRendererSize,
 } from "./renderers";
+export {
+  BEHAVIOR_IDS,
+  behaviorModeIndex,
+  DEFAULT_POINTER,
+  DRIVER_IDS,
+  isBehaviorId,
+  isDriverId,
+  pointerModeIndex,
+} from "./types";
 export type {
+  BehaviorId,
   DriverId,
   MorphLook,
   ParticleFieldState,
+  PointerField,
+  PointerMode,
   RegisteredTarget,
   RendererConfig,
   RendererId,

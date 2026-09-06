@@ -4,7 +4,7 @@ import {
   getParticleQualityConfig,
   type ParticleQuality,
 } from "./motion";
-import { clampProgress } from "./progress";
+import { clampProgress, shouldPlayAutoTween } from "./progress";
 import { createParticleRenderer } from "./renderers";
 import type { ParticleRenderer } from "./renderers/types";
 import {
@@ -13,19 +13,25 @@ import {
   type ParticleTarget,
 } from "./target";
 import type {
+  BehaviorId,
+  DriverId,
   MorphLook,
   ParticleFieldState,
+  PointerField,
   RendererConfig,
   RendererId,
 } from "./types";
+import { DEFAULT_POINTER } from "./types";
 
-export type { MorphLook, RendererConfig } from "./types";
+export type { BehaviorId, DriverId, MorphLook, RendererConfig } from "./types";
 
 export type MorphToOptions = {
   durationSeconds?: number;
   cameraZ?: number;
   scale?: [number, number, number];
   renderer?: RendererId;
+  behavior?: BehaviorId;
+  replay?: boolean;
 };
 
 export type ScreeOptions = {
@@ -45,12 +51,17 @@ const DEFAULT_LOOK: MorphLook = {
   synchronization: 0.72,
   particleSize: 2.9,
   glow: 0.44,
+  behavior: "expand",
+  behaviorStrength: 1,
+  pointer: { ...DEFAULT_POINTER },
 };
 
 const DEFAULT_RENDERER_CONFIG: RendererConfig = {
   size: 1,
   opacity: 0.675,
 };
+
+const SPRITE_SHARD_OPACITY = 0.73;
 
 type Tween = {
   startTime: number;
@@ -71,10 +82,11 @@ export class Scree {
   private readonly onProgress?: (progress: number) => void;
   private readonly onError?: (message: string) => void;
   private look: MorphLook;
+  private driver: DriverId = "auto";
   private readonly rendererLooks: Record<RendererId, RendererConfig> = {
     points: { ...DEFAULT_RENDERER_CONFIG },
-    sprites: { ...DEFAULT_RENDERER_CONFIG },
-    shards: { ...DEFAULT_RENDERER_CONFIG },
+    sprites: { ...DEFAULT_RENDERER_CONFIG, opacity: SPRITE_SHARD_OPACITY },
+    shards: { ...DEFAULT_RENDERER_CONFIG, opacity: SPRITE_SHARD_OPACITY },
   };
   private skin: ParticleRenderer;
   private field: { source: ParticleTarget; destination: ParticleTarget } | null =
@@ -158,6 +170,9 @@ export class Scree {
     if (options.renderer) {
       this.setRenderer(options.renderer);
     }
+    if (options.behavior) {
+      this.setBehavior(options.behavior);
+    }
 
     const destination = this.targets.get(id);
     if (!destination) {
@@ -171,7 +186,7 @@ export class Scree {
     const sourceId = this.activeTarget;
     const replaced = this.replacedFrom.get(id);
     this.replacedFrom.delete(id);
-    if (sourceId === id && !this.tween && !replaced) {
+    if (sourceId === id && !this.tween && !replaced && !options.replay) {
       this.onTransitionStateChange?.(false);
       return;
     }
@@ -194,13 +209,27 @@ export class Scree {
     const durationSeconds = options.durationSeconds ?? 2.6;
     this.frameCamera(destination, cameraZ);
 
-    if (this.reducedMotion || durationSeconds <= 0) {
-      this.setProgress(1);
+    if (this.reducedMotion && this.driver === "auto") {
+      this.tween = null;
+      this.applyProgress(1);
       this.onTransitionStateChange?.(false);
       return;
     }
 
-    this.setProgress(0);
+    if (
+      !shouldPlayAutoTween({
+        driver: this.driver,
+        durationSeconds,
+        reducedMotion: this.reducedMotion,
+      })
+    ) {
+      this.tween = null;
+      this.applyProgress(this.progress);
+      this.onTransitionStateChange?.(false);
+      return;
+    }
+
+    this.applyProgress(0);
     this.tween = {
       startTime: performance.now(),
       durationMs: durationSeconds * 1000,
@@ -233,6 +262,8 @@ export class Scree {
       progress: this.progress,
       quality: this.quality,
       renderer: this.skin.id,
+      driver: this.driver,
+      behavior: this.look.behavior,
     };
   }
 
@@ -271,8 +302,50 @@ export class Scree {
   }
 
   setLook(look: Partial<MorphLook>): void {
-    this.look = { ...this.look, ...look };
+    this.look = {
+      ...this.look,
+      ...look,
+      pointer: look.pointer
+        ? { ...this.look.pointer, ...look.pointer }
+        : this.look.pointer,
+    };
     this.skin.setLook(this.look);
+  }
+
+  setBehavior(id: BehaviorId, options: { strength?: number } = {}): void {
+    this.setLook({
+      behavior: id,
+      behaviorStrength: options.strength ?? this.look.behaviorStrength,
+    });
+  }
+
+  getBehavior(): { id: BehaviorId; strength: number } {
+    return {
+      id: this.look.behavior,
+      strength: this.look.behaviorStrength,
+    };
+  }
+
+  setDriver(id: DriverId): void {
+    this.driver = id;
+    if (id !== "auto") this.tween = null;
+    if (id === "pointer") {
+      this.setPointer({ mode: "repel" });
+      return;
+    }
+    this.setPointer({ mode: "off" });
+  }
+
+  getDriver(): DriverId {
+    return this.driver;
+  }
+
+  setPointer(pointer: Partial<PointerField>): void {
+    this.setLook({ pointer: { ...this.look.pointer, ...pointer } });
+  }
+
+  getPointer(): PointerField {
+    return { ...this.look.pointer };
   }
 
   resize(width: number, height: number): void {

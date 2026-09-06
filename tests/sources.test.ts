@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertSameTargetCount,
+  buildParticleTarget,
   createCubeTarget,
   createHelixTarget,
   createMeshTargetFromGeometry,
@@ -35,6 +36,42 @@ describe("target generators", () => {
       expect(target.normals.length).toBe(96 * 3);
     }
     expect(() => assertSameTargetCount(sphere, mesh)).not.toThrow();
+  });
+
+  it("biases pixel sampling toward silhouette edges when asked", () => {
+    const width = 40;
+    const height = 40;
+    const data = new Uint8ClampedArray(width * height * 4);
+    for (let index = 0; index < width * height; index += 1) {
+      const offset = index * 4;
+      data[offset] = 255;
+      data[offset + 1] = 255;
+      data[offset + 2] = 255;
+      data[offset + 3] = 255;
+    }
+    const source = { width, height, data };
+    const options = {
+      particleCount: 400,
+      seed: 1,
+      alphaThreshold: 10,
+      depth: 0.1,
+      jitter: 0,
+    };
+    const filled = buildParticleTarget(source, options);
+    const edged = buildParticleTarget(source, { ...options, preferEdges: true });
+
+    const meanRadius = (target: { positions: Float32Array; count: number }) => {
+      let sum = 0;
+      for (let index = 0; index < target.count; index += 1) {
+        const x = target.positions[index * 3] ?? 0;
+        const y = target.positions[index * 3 + 1] ?? 0;
+        sum += Math.hypot(x, y);
+      }
+      return sum / target.count;
+    };
+
+    expect(edged.count).toBe(400);
+    expect(meanRadius(edged)).toBeGreaterThan(meanRadius(filled));
   });
 
   it("keeps sphere samples on a unit-ish surface before any later scale", () => {

@@ -24,8 +24,8 @@
         <p class="eyebrow">Scree</p>
         <h1>One field. Any form.</h1>
         <p class="lede">
-          Particles do not swap. They destabilize, open into a cloud, and settle
-          as the next shape.
+          Auto plays the morph. Manual lets you drag it. Scroll maps the page.
+          Pointer pushes particles away from the mouse — it does not zoom.
         </p>
       </header>
 
@@ -46,24 +46,62 @@
         </label>
       </section>
 
-      <nav class="chrome presets" aria-label="Source targets">
-        <button type="button" data-source="image" aria-pressed="true">Image</button>
-        <button type="button" data-source="text">Text</button>
-        <button type="button" data-source="mesh">3D</button>
-        <button type="button" data-source="sphere">Sphere</button>
-      </nav>
+      <section class="chrome left-stack" aria-label="Field controls">
+        <p id="status" class="status" role="status">Loading stage…</p>
 
-      <label class="chrome progress">
-        <span>Progress</span>
-        <input
-          id="progress"
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value="1"
-        />
-      </label>
+        <div class="group group-driver">
+          <p class="group-label">Driver <span>who writes the progress bar</span></p>
+          <nav class="drivers" aria-label="Progress driver">
+            <button type="button" data-driver="auto" aria-pressed="true">Auto</button>
+            <button type="button" data-driver="manual">Manual</button>
+            <button type="button" data-driver="scroll">Scroll</button>
+            <button type="button" data-driver="pointer">Pointer</button>
+          </nav>
+        </div>
+
+        <div class="group group-motion">
+          <p class="group-label">Motion <span>the path between two shapes</span></p>
+          <nav class="motions" aria-label="Motion behavior">
+            <button type="button" data-behavior="settle">Settle</button>
+            <button type="button" data-behavior="expand" aria-pressed="true">Expand</button>
+            <button type="button" data-behavior="scatter">Scatter</button>
+            <button type="button" data-behavior="implode">Implode</button>
+            <button type="button" data-behavior="turbulence">Turbulence</button>
+            <button type="button" data-behavior="orbit">Orbit</button>
+          </nav>
+        </div>
+
+        <label class="strength">
+          <span>Strength</span>
+          <input
+            id="behavior-strength"
+            type="range"
+            min="0.4"
+            max="1.6"
+            step="0.05"
+            value="1"
+          />
+        </label>
+
+        <label class="progress">
+          <span>Progress</span>
+          <input
+            id="progress"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value="1"
+          />
+        </label>
+
+        <nav class="presets" aria-label="Source targets">
+          <button type="button" data-source="image" aria-pressed="true">Image</button>
+          <button type="button" data-source="text">Text</button>
+          <button type="button" data-source="mesh">3D</button>
+          <button type="button" data-source="sphere">Sphere</button>
+        </nav>
+      </section>
 
       <section class="chrome drop" aria-label="Target">
         <p class="drop-title">Target</p>
@@ -75,7 +113,7 @@
         </nav>
 
         <div data-panel="image">
-          <nav class="renderers" aria-label="Image presets">
+          <nav class="presets-row" aria-label="Image presets">
             <button type="button" data-preset="mark" aria-pressed="true">Mark</button>
             <button type="button" data-preset="nova">Nova</button>
             <button type="button" data-preset="glyph">Glyph</button>
@@ -99,7 +137,7 @@
           <label class="field">
             <span>Text</span>
             <input id="text-value" type="text" value="HELLO" maxlength="64" />
-            <small class="hint">Up to 64 characters. Longer lines wrap.</small>
+            <small class="hint">Up to 64 characters. Longer copy wraps and keeps the letter edges, not a white fill.</small>
           </label>
           <div class="field-row">
             <label class="field">
@@ -142,7 +180,7 @@
         </div>
       </section>
 
-      <p id="status" class="chrome status" role="status">Loading stage…</p>
+      <div id="scroll-space" hidden></div>
     </div>
     <script type="module" src="/src/playground/main.ts"></script>
   </body>

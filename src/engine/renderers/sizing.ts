@@ -4,8 +4,8 @@ import type { RendererId } from "../types";
 const CAMERA_FOV_DEG = 42;
 const CAMERA_Z = 3.1;
 const POINT_PERSPECTIVE = 2.1;
-const SPRITE_TO_POINT = 1.46;
-const SHARD_TO_POINT = 1.622;
+const SPRITE_TO_POINT = 1.577;
+const SHARD_TO_POINT = 1.752;
 
 function pointScreenPixels(input: {
   viewportWidth: number;

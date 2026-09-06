@@ -60,7 +60,7 @@ void main() {
   float fill = smoothstep(1.0, 0.38, radius);
   float halo = smoothstep(1.0, 0.62, radius) * uGlow * 0.12;
   float alpha = (fill * 0.55 + halo * 0.08) * uOpacity;
-  gl_FragColor = vec4(vColor * (0.72 + fill * 0.18), alpha);
+  gl_FragColor = vec4(vColor * (0.78 + fill * 0.18), alpha);
 }
 `;
 

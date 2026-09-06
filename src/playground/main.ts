@@ -4,10 +4,16 @@ import {
   createProceduralTarget,
   createTextTarget,
   createTorusKnotTarget,
+  fieldPointFromClient,
   getParticleQualityConfig,
+  isBehaviorId,
+  isDriverId,
   isRendererId,
   Scree,
   resolveParticleQuality,
+  scrollProgress,
+  type BehaviorId,
+  type DriverId,
   type ProceduralTargetId,
 } from "../engine";
 
@@ -46,6 +52,8 @@ const targetName = document.querySelector<HTMLElement>("#name-b");
 const meshName = document.querySelector<HTMLElement>("#name-mesh");
 const dropZone = document.querySelector<HTMLElement>(".drop");
 const progressInput = document.querySelector<HTMLInputElement>("#progress");
+const strengthInput = document.querySelector<HTMLInputElement>("#behavior-strength");
+const scrollSpace = document.querySelector<HTMLElement>("#scroll-space");
 const sizeInput = document.querySelector<HTMLInputElement>("#renderer-size");
 const opacityInput = document.querySelector<HTMLInputElement>("#renderer-opacity");
 const sourceButtons = [
@@ -60,6 +68,12 @@ const shapeButtons = [
 ];
 const rendererButtons = [
   ...document.querySelectorAll<HTMLButtonElement>("[data-renderer]"),
+];
+const behaviorButtons = [
+  ...document.querySelectorAll<HTMLButtonElement>("[data-behavior]"),
+];
+const driverButtons = [
+  ...document.querySelectorAll<HTMLButtonElement>("[data-driver]"),
 ];
 const panels = [...document.querySelectorAll<HTMLElement>("[data-panel]")];
 
@@ -80,6 +94,8 @@ if (
   !meshName ||
   !dropZone ||
   !progressInput ||
+  !strengthInput ||
+  !scrollSpace ||
   !sizeInput ||
   !opacityInput
 ) {
@@ -102,6 +118,8 @@ const nameB = targetName;
 const nameMesh = meshName;
 const sizeControl = sizeInput;
 const opacityControl = opacityInput;
+const strengthControl = strengthInput;
+const scrollTrack = scrollSpace;
 
 let customReady = false;
 let liveImageId = "mark";
@@ -213,11 +231,14 @@ async function start(): Promise<void> {
   setPressed(sourceButtons, "source", "image");
   setPressed(presetButtons, "preset", "mark");
   setPressed(shapeButtons, "shape", "sphere");
+  setPressed(behaviorButtons, "behavior", engine.getBehavior().id);
+  setPressed(driverButtons, "driver", engine.getDriver());
+  strengthControl.value = String(engine.getBehavior().strength);
   showKind("image");
   syncRendererSliders();
   statusEl.textContent = reducedMotion
     ? "Reduced motion: forms change without the cloud."
-    : "Same field. Image, text, mesh, or a shape.";
+    : "Auto is on. Click Nova to watch it play. Then try Manual.";
 }
 
 for (const button of sourceButtons) {
@@ -271,6 +292,22 @@ for (const button of shapeButtons) {
   });
 }
 
+const BEHAVIOR_STATUS: Record<BehaviorId, string> = {
+  settle: "Straight travel with a little organic drift.",
+  expand: "Cloud opens outward, then settles.",
+  scatter: "Particles break apart, then find the next form.",
+  implode: "The field pulls in, then settles.",
+  turbulence: "Coherent displacement. The target stays underneath.",
+  orbit: "The field rotates as it travels.",
+};
+
+const DRIVER_STATUS: Record<DriverId, string> = {
+  auto: "Auto: click Mark, then Nova. The bar plays itself.",
+  manual: "Manual: drag Progress halfway, then click Nova. The shape changes. The bar stays.",
+  scroll: "Scroll: roll the page. The bar follows the scrollbar.",
+  pointer: "Pointer: move the mouse over the shape. Particles push away. Not a zoom.",
+};
+
 for (const button of rendererButtons) {
   button.addEventListener("click", () => {
     const id = button.dataset.renderer;
@@ -282,6 +319,55 @@ for (const button of rendererButtons) {
       "This is the same particle field. Only the renderer changed.";
   });
 }
+
+for (const button of behaviorButtons) {
+  button.addEventListener("click", () => {
+    const id = button.dataset.behavior;
+    if (!id || !isBehaviorId(id)) return;
+    engine.setBehavior(id, { strength: Number(strengthControl.value) });
+    setPressed(behaviorButtons, "behavior", id);
+    const current = engine.getActiveTarget();
+    if (current && engine.getDriver() === "auto") {
+      engine.morphTo(current, { replay: true });
+    }
+    statusEl.textContent = BEHAVIOR_STATUS[id];
+  });
+}
+
+function applyScrollDriver(on: boolean): void {
+  document.documentElement.classList.toggle("scroll-drive", on);
+  document.body.classList.toggle("scroll-drive", on);
+  document.documentElement.classList.toggle("pointer-drive", false);
+  document.body.classList.toggle("pointer-drive", false);
+  scrollTrack.hidden = !on;
+  if (!on) return;
+  engine.setProgress(
+    scrollProgress({
+      scrollTop: window.scrollY,
+      scrollHeight: document.documentElement.scrollHeight,
+      clientHeight: window.innerHeight,
+    }),
+  );
+}
+
+for (const button of driverButtons) {
+  button.addEventListener("click", () => {
+    const id = button.dataset.driver;
+    if (!id || !isDriverId(id)) return;
+    engine.setDriver(id);
+    setPressed(driverButtons, "driver", id);
+    applyScrollDriver(id === "scroll");
+    document.documentElement.classList.toggle("pointer-drive", id === "pointer");
+    document.body.classList.toggle("pointer-drive", id === "pointer");
+    statusEl.textContent = DRIVER_STATUS[id];
+  });
+}
+
+strengthControl.addEventListener("input", () => {
+  engine.setBehavior(engine.getBehavior().id, {
+    strength: Number(strengthControl.value),
+  });
+});
 
 sizeControl.addEventListener("input", () => {
   applyRendererConfig();
@@ -397,8 +483,40 @@ function assignDroppedFiles(files: File[]): void {
 }
 
 progressInput.addEventListener("input", () => {
+  if (engine.getDriver() === "auto") {
+    engine.setDriver("manual");
+    setPressed(driverButtons, "driver", "manual");
+    applyScrollDriver(false);
+  }
   engine.setProgress(Number(progressInput.value));
   statusEl.textContent = "Progress is driven by the slider.";
+});
+
+window.addEventListener(
+  "scroll",
+  () => {
+    if (engine.getDriver() !== "scroll") return;
+    engine.setProgress(
+      scrollProgress({
+        scrollTop: window.scrollY,
+        scrollHeight: document.documentElement.scrollHeight,
+        clientHeight: window.innerHeight,
+      }),
+    );
+  },
+  { passive: true },
+);
+
+window.addEventListener("pointermove", (event) => {
+  if (engine.getDriver() !== "pointer") return;
+  engine.setPointer(
+    fieldPointFromClient({
+      clientX: event.clientX,
+      clientY: event.clientY,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    }),
+  );
 });
 
 dropZone.addEventListener("dragover", (event) => {

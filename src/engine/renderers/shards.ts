@@ -61,9 +61,9 @@ varying float vFlight;
 varying float vSeed;
 
 void main() {
-  float facet = 0.62 + vSeed * 0.28 + vFlight * 0.12;
+  float facet = 0.67 + vSeed * 0.28 + vFlight * 0.12;
   vec3 color = vColor * facet + vec3(uGlow * 0.12);
-  gl_FragColor = vec4(color, 0.78 * uOpacity);
+  gl_FragColor = vec4(color, 0.84 * uOpacity);
 }
 `;
 

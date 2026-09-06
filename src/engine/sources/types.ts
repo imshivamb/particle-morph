@@ -28,6 +28,7 @@ export type ParticleTargetOptions = BaseTargetOptions & {
   depth: number;
   jitter?: number;
   extent?: number;
+  preferEdges?: boolean;
 };
 
 export type ImageTargetOptions = BaseTargetOptions & {

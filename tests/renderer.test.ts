@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { FIELD_SAMPLE_GLSL } from "../src/engine/field-motion";
 import {
+  BEHAVIOR_IDS,
+  isBehaviorId,
+} from "../src/engine/types";
+import {
   isRendererId,
   RENDERER_IDS,
   resolveRendererSize,
@@ -26,8 +30,24 @@ describe("renderers", () => {
 
   it("keeps morph math in one shared field sample", () => {
     expect(FIELD_SAMPLE_GLSL).toContain("FieldSample sampleField");
+    expect(FIELD_SAMPLE_GLSL).toContain("uBehaviorMode");
+    expect(FIELD_SAMPLE_GLSL).toContain("behaviorTravel");
+    expect(FIELD_SAMPLE_GLSL).toContain("pointerInfluence");
     expect(FIELD_SAMPLE_GLSL).not.toContain("gl_PointSize");
     expect(FIELD_SAMPLE_GLSL).not.toContain("InstancedBuffer");
+  });
+
+  it("exposes the six motion behaviors", () => {
+    expect(BEHAVIOR_IDS).toEqual([
+      "settle",
+      "expand",
+      "scatter",
+      "implode",
+      "turbulence",
+      "orbit",
+    ]);
+    expect(isBehaviorId("orbit")).toBe(true);
+    expect(isBehaviorId("swirl")).toBe(false);
   });
 
   it("keeps sprite and shard size tied to the point look, not the draw count", () => {
