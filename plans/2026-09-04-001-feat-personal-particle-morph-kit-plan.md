@@ -179,7 +179,7 @@ flowchart TB
 
 **Deferred to Planning**
 
-- Public name of the kit.
+- Public name of the kit: **Scree**.
 - Hosting and CI for the live demo.
 - Exact v1 preset lineup (must satisfy R2).
 - License on the personal repo.

@@ -28,7 +28,7 @@ export type MorphToOptions = {
   renderer?: RendererId;
 };
 
-export type ParticleMorphEngineOptions = {
+export type ScreeOptions = {
   canvas: HTMLCanvasElement;
   quality: ParticleQuality;
   reducedMotion: boolean;
@@ -59,7 +59,7 @@ type Tween = {
   to: number;
 };
 
-export class ParticleMorphEngine {
+export class Scree {
   private readonly webgl: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.08, 24);
@@ -93,7 +93,7 @@ export class ParticleMorphEngine {
     this.setPaused(document.hidden);
   };
 
-  constructor(options: ParticleMorphEngineOptions) {
+  constructor(options: ScreeOptions) {
     const quality = getParticleQualityConfig(options.quality);
     this.quality = options.quality;
     this.reducedMotion = options.reducedMotion;

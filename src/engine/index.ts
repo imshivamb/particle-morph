@@ -1,5 +1,5 @@
-export { ParticleMorphEngine } from "./scene";
-export type { MorphToOptions, ParticleMorphEngineOptions } from "./scene";
+export { Scree } from "./scene";
+export type { MorphToOptions, ScreeOptions } from "./scene";
 export { clampProgress } from "./progress";
 export {
   getParticleQualityConfig,

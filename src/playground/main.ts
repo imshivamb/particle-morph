@@ -6,7 +6,7 @@ import {
   createTorusKnotTarget,
   getParticleQualityConfig,
   isRendererId,
-  ParticleMorphEngine,
+  Scree,
   resolveParticleQuality,
   type ProceduralTargetId,
 } from "../engine";
@@ -117,7 +117,7 @@ const quality = resolveParticleQuality({
 const particleCount = getParticleQualityConfig(quality).particleCount;
 const shared = { particleCount, seed: 2026 };
 
-const engine = new ParticleMorphEngine({
+const engine = new Scree({
   canvas,
   quality,
   reducedMotion,

@@ -1,4 +1,4 @@
-# Morph Engine
+# Scree
 
 A small WebGL kit that keeps **one field of points** and morphs that same field from one shape to another.
 
@@ -20,14 +20,14 @@ Open the local Vite URL. The left row is the source axis: **Image / Text / 3D / 
 
 ```ts
 import {
-  ParticleMorphEngine,
+  Scree,
   createImageTarget,
   createTextTarget,
   createMeshTarget,
   createSphereTarget,
 } from "./src/engine";
 
-const engine = new ParticleMorphEngine({
+const engine = new Scree({
   canvas,
   quality: "medium",
   reducedMotion: false,

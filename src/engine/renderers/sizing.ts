@@ -1,6 +1,6 @@
 import type { RendererId } from "../types";
 
-/** Match `ParticleMorphEngine` camera and the points `gl_PointSize` falloff. */
+/** Match the Scree camera and the points `gl_PointSize` falloff. */
 const CAMERA_FOV_DEG = 42;
 const CAMERA_Z = 3.1;
 const POINT_PERSPECTIVE = 2.1;

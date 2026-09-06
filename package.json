@@ -1,9 +1,9 @@
 {
-  "name": "morph-engine",
+  "name": "scree",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "A small WebGL particle-morph kit: one field, any two image targets, a controlled cloud in between.",
+  "description": "A GPU field engine: anything in, anything in motion. One particle field, a controlled cloud in between.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
