@@ -6,6 +6,10 @@ It is not a crossfade and not two pictures stacked. An image, SVG, word, mesh, o
 
 The playground is a demo of the engine.
 
+**Live:** [scree-tau.vercel.app](https://scree-tau.vercel.app)
+
+Pushes to `main` redeploy that URL.
+
 ## Playground
 
 ```bash
