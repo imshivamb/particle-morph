@@ -1,5 +1,5 @@
 {
-  "name": "scree",
+  "name": "scree-core",
   "version": "0.1.0",
   "type": "module",
   "description": "A GPU field engine: anything in, anything in motion. One particle field, a controlled cloud in between.",
