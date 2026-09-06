@@ -9,6 +9,7 @@
   --motion: #9ef2ff;
   --source: #f4f1ea;
   --preset: #c4b5fd;
+  --transition: #86efac;
 }
 
 * {
@@ -122,15 +123,50 @@ h1 {
   color: var(--driver);
 }
 
-.group-motion .group-label {
-  color: var(--motion);
+.group-motion .group-label,
+.group-transition .group-label {
+  color: var(--transition);
 }
 
 .presets,
 .drivers,
-.motions {
+.motions,
+.transitions {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mix-sliders {
+  display: grid;
+  gap: 8px;
+}
+
+.mix-sliders[hidden] {
+  display: none;
+}
+
+.mix-sliders label,
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mix-sliders span {
+  width: 6.4rem;
+  color: var(--mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mix-sliders input {
+  flex: 1;
+  accent-color: var(--transition);
+}
+
+.tool-row {
   gap: 8px;
 }
 
@@ -234,6 +270,10 @@ html.scroll-drive #app {
   pointer-events: none;
 }
 
+html.showcase-drive #scroll-space {
+  height: 440vh;
+}
+
 .shape-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -268,8 +308,10 @@ html.scroll-drive #app {
 .renderers button,
 .motions button,
 .drivers button,
+.transitions button,
 .presets-row button,
 .shape-grid button,
+.tool-row button,
 #play-custom,
 #apply-text,
 #use-knot {
@@ -288,8 +330,9 @@ html.scroll-drive #app {
   border-color: rgba(243, 194, 122, 0.28);
 }
 
-.motions button {
-  border-color: rgba(158, 242, 255, 0.22);
+.motions button,
+.transitions button {
+  border-color: rgba(134, 239, 172, 0.28);
 }
 
 .presets button {
@@ -319,9 +362,17 @@ html.scroll-drive #app {
 }
 
 .motions button:hover,
-.motions button[aria-pressed="true"] {
-  border-color: rgba(158, 242, 255, 0.6);
-  color: var(--motion);
+.motions button[aria-pressed="true"],
+.transitions button:hover,
+.transitions button[aria-pressed="true"] {
+  border-color: rgba(134, 239, 172, 0.7);
+  color: var(--transition);
+}
+
+.tool-row button[aria-pressed="true"],
+.tool-row button:hover {
+  border-color: rgba(158, 242, 255, 0.55);
+  color: var(--accent);
 }
 
 .presets button:hover,

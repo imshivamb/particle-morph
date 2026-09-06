@@ -1,8 +1,33 @@
-export { Scree } from "./scene";
-export type { MorphToOptions, ScreeOptions } from "./scene";
+export { createScree, Scree } from "./scene";
+export type { MorphToOptions, ScreeOptions, TransitionOptions } from "./scene";
 export { clampProgress, shouldPlayAutoTween } from "./progress";
 export { scrollProgress } from "./drivers/scroll-progress";
 export { fieldPointFromClient } from "./drivers/pointer-from-event";
+export { sequenceProgress } from "./drivers/sequence-progress";
+export {
+  dominantBehavior,
+  ease,
+  emptyBehaviorWeights,
+  envelopeAt,
+  exclusiveBehavior,
+  mixAtProgress,
+  normalizeMix,
+  specFromMix,
+} from "./motion-field";
+export type {
+  BehaviorMix,
+  BehaviorWeights,
+  EasingId,
+  MotionEnvelope,
+  MotionSpec,
+} from "./motion-field";
+export {
+  isTransitionPresetId,
+  resolveMotion,
+  TRANSITION_PRESET_IDS,
+  TRANSITION_PRESETS,
+} from "./transitions";
+export type { MotionInput, TransitionPresetId } from "./transitions";
 export {
   getParticleQualityConfig,
   resolveParticleQuality,
@@ -16,7 +41,6 @@ export {
 } from "./renderers";
 export {
   BEHAVIOR_IDS,
-  behaviorModeIndex,
   DEFAULT_POINTER,
   DRIVER_IDS,
   isBehaviorId,

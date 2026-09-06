@@ -1,3 +1,4 @@
+import type { BehaviorWeights } from "./motion-field";
 import type { ParticleQuality } from "./motion";
 import type { ParticleTarget } from "./target";
 
@@ -34,7 +35,7 @@ export type MorphLook = {
   synchronization: number;
   particleSize: number;
   glow: number;
-  behavior: BehaviorId;
+  behaviorMix: BehaviorWeights;
   behaviorStrength: number;
   pointer: PointerField;
 };
@@ -45,27 +46,6 @@ export function isBehaviorId(value: string): value is BehaviorId {
 
 export function isDriverId(value: string): value is DriverId {
   return (DRIVER_IDS as readonly string[]).includes(value);
-}
-
-export function behaviorModeIndex(id: BehaviorId): number {
-  switch (id) {
-    case "settle":
-      return 0;
-    case "expand":
-      return 1;
-    case "scatter":
-      return 2;
-    case "implode":
-      return 3;
-    case "turbulence":
-      return 4;
-    case "orbit":
-      return 5;
-    default: {
-      const exhaustive: never = id;
-      throw new Error(`Unknown behavior "${String(exhaustive)}"`);
-    }
-  }
 }
 
 export function pointerModeIndex(mode: PointerMode): number {
@@ -102,7 +82,7 @@ export type ParticleFieldState = {
   quality: ParticleQuality;
   renderer: RendererId;
   driver: DriverId;
-  behavior: BehaviorId;
+  behaviorMix: BehaviorWeights;
 };
 
 export type RegisteredTarget = {

@@ -24,8 +24,8 @@
         <p class="eyebrow">Scree</p>
         <h1>One field. Any form.</h1>
         <p class="lede">
-          Auto plays the morph. Manual lets you drag it. Scroll maps the page.
-          Pointer pushes particles away from the mouse — it does not zoom.
+          Mix motions. Switch the renderer. Drive progress. The field stays one
+          field.
         </p>
       </header>
 
@@ -59,16 +59,33 @@
           </nav>
         </div>
 
-        <div class="group group-motion">
-          <p class="group-label">Motion <span>the path between two shapes</span></p>
-          <nav class="motions" aria-label="Motion behavior">
-            <button type="button" data-behavior="settle">Settle</button>
-            <button type="button" data-behavior="expand" aria-pressed="true">Expand</button>
-            <button type="button" data-behavior="scatter">Scatter</button>
-            <button type="button" data-behavior="implode">Implode</button>
-            <button type="button" data-behavior="turbulence">Turbulence</button>
-            <button type="button" data-behavior="orbit">Orbit</button>
+        <div class="group group-transition">
+          <p class="group-label">Transition <span>packaged mixes. Custom opens the sliders.</span></p>
+          <nav class="transitions" aria-label="Transition presets">
+            <button type="button" data-transition="organic" aria-pressed="true">Organic</button>
+            <button type="button" data-transition="explode">Explode</button>
+            <button type="button" data-transition="dissolve">Dissolve</button>
+            <button type="button" data-transition="vortex">Vortex</button>
+            <button type="button" data-transition="implode">Implode</button>
+            <button type="button" data-transition="disperse">Disperse</button>
+            <button type="button" data-transition="reassemble">Reassemble</button>
+            <button type="button" data-transition="custom">Custom</button>
           </nav>
+        </div>
+
+        <div class="mix-sliders" id="mix-sliders" hidden>
+          <label>
+            <span>Expand</span>
+            <input id="mix-expand" type="range" min="0" max="1.4" step="0.05" value="0.8" />
+          </label>
+          <label>
+            <span>Turbulence</span>
+            <input id="mix-turbulence" type="range" min="0" max="1.4" step="0.05" value="0.35" />
+          </label>
+          <label>
+            <span>Orbit</span>
+            <input id="mix-orbit" type="range" min="0" max="1.4" step="0.05" value="0.15" />
+          </label>
         </div>
 
         <label class="strength">
@@ -83,6 +100,13 @@
           />
         </label>
 
+        <div class="tool-row">
+          <button type="button" id="copy-config" title="Copy a Scree snippet for this mix and target">
+            Copy code
+          </button>
+          <button type="button" id="showcase" aria-pressed="false">Showcase</button>
+        </div>
+
         <label class="progress">
           <span>Progress</span>
           <input
@@ -94,13 +118,6 @@
             value="1"
           />
         </label>
-
-        <nav class="presets" aria-label="Source targets">
-          <button type="button" data-source="image" aria-pressed="true">Image</button>
-          <button type="button" data-source="text">Text</button>
-          <button type="button" data-source="mesh">3D</button>
-          <button type="button" data-source="sphere">Sphere</button>
-        </nav>
       </section>
 
       <section class="chrome drop" aria-label="Target">

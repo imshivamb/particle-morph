@@ -30,8 +30,8 @@ describe("renderers", () => {
 
   it("keeps morph math in one shared field sample", () => {
     expect(FIELD_SAMPLE_GLSL).toContain("FieldSample sampleField");
-    expect(FIELD_SAMPLE_GLSL).toContain("uBehaviorMode");
-    expect(FIELD_SAMPLE_GLSL).toContain("behaviorTravel");
+    expect(FIELD_SAMPLE_GLSL).toContain("uBehaviorWeightsA");
+    expect(FIELD_SAMPLE_GLSL).toContain("composeInfluences");
     expect(FIELD_SAMPLE_GLSL).toContain("pointerInfluence");
     expect(FIELD_SAMPLE_GLSL).not.toContain("gl_PointSize");
     expect(FIELD_SAMPLE_GLSL).not.toContain("InstancedBuffer");

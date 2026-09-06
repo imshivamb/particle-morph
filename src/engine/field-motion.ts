@@ -4,7 +4,8 @@ uniform float uTime;
 uniform float uExpansionStrength;
 uniform float uTurbulenceStrength;
 uniform float uSynchronization;
-uniform float uBehaviorMode;
+uniform vec3 uBehaviorWeightsA;
+uniform vec3 uBehaviorWeightsB;
 uniform float uBehaviorStrength;
 uniform vec2 uPointer;
 uniform float uPointerRadius;
@@ -28,29 +29,20 @@ vec3 coherentNoise(vec3 point, float time, float seed) {
   );
 }
 
-vec3 behaviorTravel(
-  float mode,
+vec3 composeInfluences(
   vec3 radial,
   vec3 curl,
   vec3 swirl,
   float strength
 ) {
-  if (mode < 0.5) {
-    return curl * 0.22 * strength;
-  }
-  if (mode < 1.5) {
-    return (radial + curl) * strength;
-  }
-  if (mode < 2.5) {
-    return curl * 2.15 * strength;
-  }
-  if (mode < 3.5) {
-    return (-radial + curl * 0.7) * strength;
-  }
-  if (mode < 4.5) {
-    return curl * 1.25 * strength;
-  }
-  return swirl * strength;
+  vec3 travel = vec3(0.0);
+  travel += curl * 0.22 * uBehaviorWeightsA.x;
+  travel += (radial + curl) * uBehaviorWeightsA.y;
+  travel += curl * 2.15 * uBehaviorWeightsA.z;
+  travel += (-radial + curl * 0.7) * uBehaviorWeightsB.x;
+  travel += curl * 1.25 * uBehaviorWeightsB.y;
+  travel += swirl * uBehaviorWeightsB.z;
+  return travel * strength;
 }
 
 vec3 pointerInfluence(vec3 mixed) {
@@ -98,7 +90,7 @@ FieldSample sampleField(
     mixed.x * sine + mixed.z * cosine
   );
   vec3 swirl = (spun - mixed) + curl * 0.55;
-  vec3 travel = behaviorTravel(uBehaviorMode, radial, curl, swirl, uBehaviorStrength);
+  vec3 travel = composeInfluences(radial, curl, swirl, uBehaviorStrength);
 
   vec3 normal = normalize(mix(sourceNormal, targetNormal, targetMix) + vec3(0.0001));
   float lit = 0.34 + 0.66 * max(dot(normal, normalize(vec3(0.42, 0.78, 0.74))), 0.0);

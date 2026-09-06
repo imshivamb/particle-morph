@@ -1,6 +1,13 @@
 import * as THREE from "three";
 
 import {
+  dominantBehavior,
+  exclusiveBehavior,
+  mixAtProgress,
+  type BehaviorWeights,
+  type MotionSpec,
+} from "./motion-field";
+import {
   getParticleQualityConfig,
   type ParticleQuality,
 } from "./motion";
@@ -12,6 +19,11 @@ import {
   targetDepthSpan,
   type ParticleTarget,
 } from "./target";
+import {
+  resolveMotion,
+  type MotionInput,
+  type TransitionPresetId,
+} from "./transitions";
 import type {
   BehaviorId,
   DriverId,
@@ -30,8 +42,19 @@ export type MorphToOptions = {
   cameraZ?: number;
   scale?: [number, number, number];
   renderer?: RendererId;
-  behavior?: BehaviorId;
+  behavior?: MotionInput;
   replay?: boolean;
+};
+
+export type TransitionOptions = {
+  from?: string;
+  to: string;
+  durationSeconds?: number;
+  motion?: MotionInput;
+  renderer?: RendererId;
+  replay?: boolean;
+  cameraZ?: number;
+  scale?: [number, number, number];
 };
 
 export type ScreeOptions = {
@@ -51,7 +74,7 @@ const DEFAULT_LOOK: MorphLook = {
   synchronization: 0.72,
   particleSize: 2.9,
   glow: 0.44,
-  behavior: "expand",
+  behaviorMix: exclusiveBehavior("expand"),
   behaviorStrength: 1,
   pointer: { ...DEFAULT_POINTER },
 };
@@ -82,6 +105,8 @@ export class Scree {
   private readonly onProgress?: (progress: number) => void;
   private readonly onError?: (message: string) => void;
   private look: MorphLook;
+  private motionSpec: MotionSpec = { expand: 1 };
+  private activePreset: TransitionPresetId | undefined;
   private driver: DriverId = "auto";
   private readonly rendererLooks: Record<RendererId, RendererConfig> = {
     points: { ...DEFAULT_RENDERER_CONFIG },
@@ -138,6 +163,14 @@ export class Scree {
     options.canvas.addEventListener("webglcontextlost", this.handleContextLost);
     document.addEventListener("visibilitychange", this.visibilityHandler);
     this.startLoop();
+  }
+
+  addTarget(
+    id: string,
+    target: ParticleTarget,
+    scale: [number, number, number] = [1, 1, 1],
+  ): void {
+    this.registerTarget(id, target, scale);
   }
 
   registerTarget(
@@ -239,6 +272,22 @@ export class Scree {
     this.onTransitionStateChange?.(true);
   }
 
+  transition(options: TransitionOptions): void {
+    if (options.motion) {
+      this.setBehavior(options.motion);
+    }
+    if (options.from && this.targets.has(options.from)) {
+      this.activeTarget = options.from;
+    }
+    this.morphTo(options.to, {
+      durationSeconds: options.durationSeconds,
+      renderer: options.renderer,
+      replay: options.replay,
+      cameraZ: options.cameraZ,
+      scale: options.scale,
+    });
+  }
+
   private frameCamera(target: ParticleTarget, cameraZ: number): void {
     if (targetDepthSpan(target) > 0.42) {
       this.camera.position.set(0.92, 0.62, Math.max(2.55, cameraZ * 0.92));
@@ -263,7 +312,7 @@ export class Scree {
       quality: this.quality,
       renderer: this.skin.id,
       driver: this.driver,
-      behavior: this.look.behavior,
+      behaviorMix: { ...this.look.behaviorMix },
     };
   }
 
@@ -305,6 +354,9 @@ export class Scree {
     this.look = {
       ...this.look,
       ...look,
+      behaviorMix: look.behaviorMix
+        ? { ...this.look.behaviorMix, ...look.behaviorMix }
+        : this.look.behaviorMix,
       pointer: look.pointer
         ? { ...this.look.pointer, ...look.pointer }
         : this.look.pointer,
@@ -312,18 +364,39 @@ export class Scree {
     this.skin.setLook(this.look);
   }
 
-  setBehavior(id: BehaviorId, options: { strength?: number } = {}): void {
-    this.setLook({
-      behavior: id,
-      behaviorStrength: options.strength ?? this.look.behaviorStrength,
-    });
+  setBehavior(
+    input: MotionInput,
+    options: { strength?: number } = {},
+  ): void {
+    const resolved = resolveMotion(input);
+    this.motionSpec = resolved.spec;
+    this.activePreset = resolved.preset;
+    this.look.behaviorStrength =
+      options.strength ?? this.look.behaviorStrength;
+    this.applyMotionAtProgress();
   }
 
-  getBehavior(): { id: BehaviorId; strength: number } {
+  getBehavior(): {
+    id: BehaviorId | "mix";
+    mix: BehaviorWeights;
+    strength: number;
+    preset?: TransitionPresetId;
+  } {
+    const mix = { ...this.look.behaviorMix };
     return {
-      id: this.look.behavior,
+      id: dominantBehavior(mix),
+      mix,
       strength: this.look.behaviorStrength,
+      preset: this.activePreset,
     };
+  }
+
+  getBehaviorMix(): BehaviorWeights {
+    return { ...this.look.behaviorMix };
+  }
+
+  getMotionSpec(): MotionSpec {
+    return { ...this.motionSpec };
   }
 
   setDriver(id: DriverId): void {
@@ -434,9 +507,19 @@ export class Scree {
     }
   }
 
+  private applyMotionAtProgress(): void {
+    this.look.behaviorMix = mixAtProgress(this.motionSpec, this.progress);
+    this.skin.setLook(this.look);
+  }
+
   private applyProgress(progress: number): void {
     this.progress = clampProgress(progress);
+    this.applyMotionAtProgress();
     this.skin.setProgress(this.progress);
     this.onProgress?.(this.progress);
   }
+}
+
+export function createScree(options: ScreeOptions): Scree {
+  return new Scree(options);
 }
