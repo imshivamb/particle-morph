@@ -1,15 +1,32 @@
 {
   "name": "scree",
-  "private": true,
   "version": "0.1.0",
   "type": "module",
   "description": "A GPU field engine: anything in, anything in motion. One particle field, a controlled cloud in between.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run build:lib && npm run build:types && npm run build:playground",
+    "build:lib": "vite build --config vite.library.config.ts",
+    "build:types": "tsc -p tsconfig.library.json",
+    "build:playground": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pack:check": "npm pack --dry-run"
   },
+  "main": "./dist/scree.js",
+  "module": "./dist/scree.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/scree.js"
+    }
+  },
+  "files": [
+    "dist/scree.js",
+    "dist/types",
+    "README.md"
+  ],
   "dependencies": {
     "three": "^0.170.0"
   },
