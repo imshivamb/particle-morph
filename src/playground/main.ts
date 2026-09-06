@@ -547,7 +547,7 @@ function copySnippet(): string {
     driver === "auto"
       ? ""
       : `\nengine.setDriver(${JSON.stringify(driver)});\nengine.setProgress(${engine.getProgress().toFixed(3)});`;
-  return `import { ${imports} } from "scree";
+  return `import { ${imports} } from "scree-core";
 
 const canvas = document.querySelector("canvas");
 if (!canvas) throw new Error("Scree canvas not found.");

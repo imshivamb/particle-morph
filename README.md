@@ -23,14 +23,14 @@ Open the local Vite URL. The **Target** panel is Image / Text / 3D / Shape. **Po
 ## Install
 
 ```ts
-// npm install scree
+// npm install scree-core
 import {
   createScree,
   createImageTarget,
   createTextTarget,
   createMeshTarget,
   createSphereTarget,
-} from "scree";
+} from "scree-core";
 
 const canvas = document.querySelector("canvas");
 if (!canvas) throw new Error("Scree canvas not found.");
