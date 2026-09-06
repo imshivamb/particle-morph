@@ -4,20 +4,22 @@ import {
   createProceduralTarget,
   createTextTarget,
   createTorusKnotTarget,
-  fieldPointFromClient,
-  getParticleQualityConfig,
   isDriverId,
   isRendererId,
-  isTransitionPresetId,
   Scree,
-  resolveParticleQuality,
-  scrollProgress,
-  sequenceProgress,
   type BehaviorMix,
   type DriverId,
   type ProceduralTargetId,
   type TransitionPresetId,
 } from "../engine";
+import { fieldPointFromClient } from "../engine/drivers/pointer-from-event";
+import { scrollProgress } from "../engine/drivers/scroll-progress";
+import { sequenceProgress } from "../engine/drivers/sequence-progress";
+import {
+  getParticleQualityConfig,
+  resolveParticleQuality,
+} from "../engine/motion";
+import { isTransitionPresetId } from "../engine/transitions";
 
 import "./styles.css";
 
@@ -489,16 +491,82 @@ strengthControl.addEventListener("input", () => {
   );
 });
 
-copyConfig.addEventListener("click", async () => {
+function targetSnippet(): { imports: string[]; setup: string; id: string } {
+  const active = engine.getActiveTarget() ?? "sphere";
+  const particleCount = getParticleQualityConfig(quality).particleCount;
+  const options = `{ particleCount: ${particleCount} }`;
+
+  if (active === "text") {
+    return {
+      imports: ["createTextTarget"],
+      setup: `const target = createTextTarget(${JSON.stringify(textValue.value)}, ${options});`,
+      id: "text",
+    };
+  }
+
+  if (active === "sphere") {
+    return {
+      imports: ["createSphereTarget"],
+      setup: `const target = createSphereTarget(${options});`,
+      id: "sphere",
+    };
+  }
+
+  if (SHAPES.includes(active as ProceduralTargetId)) {
+    return {
+      imports: ["createProceduralTarget"],
+      setup: `const target = createProceduralTarget(${JSON.stringify(active)}, ${options});`,
+      id: active,
+    };
+  }
+
+  if (active === "mesh") {
+    return {
+      imports: ["createMeshTarget"],
+      setup: `// Replace this URL with your GLB or GLTF asset.\nconst target = await createMeshTarget("/assets/your-model.glb", ${options});`,
+      id: "mesh",
+    };
+  }
+
+  return {
+    imports: ["createImageTarget"],
+    setup: `// Replace this URL with your image or SVG asset.\nconst target = await createImageTarget("/assets/your-image.png", ${options});`,
+    id: active,
+  };
+}
+
+function copySnippet(): string {
   const mix = engine.getBehaviorMix();
   const compact = Object.fromEntries(
     Object.entries(mix).filter(([, value]) => value > 0),
   );
-  const snippet = `engine.setRenderer("${engine.getRenderer()}");
+  const target = targetSnippet();
+  const imports = ["createScree", ...target.imports].join(", ");
+  const driver = engine.getDriver();
+  const progress =
+    driver === "auto"
+      ? ""
+      : `\nengine.setDriver(${JSON.stringify(driver)});\nengine.setProgress(${engine.getProgress().toFixed(3)});`;
+  return `import { ${imports} } from "scree";
+
+const canvas = document.querySelector("canvas");
+if (!canvas) throw new Error("Scree canvas not found.");
+
+const engine = createScree({ canvas });
+${target.setup}
+engine.addTarget(${JSON.stringify(target.id)}, target);
+engine.setRenderer(${JSON.stringify(engine.getRenderer())});
 engine.transition({
-  to: "${engine.getActiveTarget() ?? "mark"}",
+  to: ${JSON.stringify(target.id)},
   motion: ${JSON.stringify(compact)},
-});`;
+});${progress}
+
+// Call engine.dispose() when this canvas is removed.
+`;
+}
+
+copyConfig.addEventListener("click", async () => {
+  const snippet = copySnippet();
   try {
     await navigator.clipboard.writeText(snippet);
     statusEl.textContent =

@@ -9,6 +9,7 @@ import {
 } from "./motion-field";
 import {
   getParticleQualityConfig,
+  resolveParticleQuality,
   type ParticleQuality,
 } from "./motion";
 import { clampProgress, shouldPlayAutoTween } from "./progress";
@@ -59,8 +60,8 @@ export type TransitionOptions = {
 
 export type ScreeOptions = {
   canvas: HTMLCanvasElement;
-  quality: ParticleQuality;
-  reducedMotion: boolean;
+  quality?: ParticleQuality;
+  reducedMotion?: boolean;
   look?: Partial<MorphLook>;
   renderer?: RendererId;
   onTransitionStateChange?: (isTransitioning: boolean) => void;
@@ -131,9 +132,22 @@ export class Scree {
   };
 
   constructor(options: ScreeOptions) {
-    const quality = getParticleQualityConfig(options.quality);
-    this.quality = options.quality;
-    this.reducedMotion = options.reducedMotion;
+    const reducedMotion =
+      options.reducedMotion ??
+      (typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const quality =
+      options.quality ??
+      resolveParticleQuality({
+        viewportWidth:
+          typeof window !== "undefined" ? window.innerWidth : 1024,
+        hardwareConcurrency:
+          typeof navigator !== "undefined" ? navigator.hardwareConcurrency : 4,
+        reducedMotion,
+      });
+    const qualityConfig = getParticleQualityConfig(quality);
+    this.quality = quality;
+    this.reducedMotion = reducedMotion;
     this.onTransitionStateChange = options.onTransitionStateChange;
     this.onProgress = options.onProgress;
     this.onError = options.onError;
@@ -149,7 +163,7 @@ export class Scree {
     });
     this.webgl.setClearColor(0x000000, 0);
     this.webgl.setPixelRatio(
-      Math.min(window.devicePixelRatio || 1, quality.maxDpr),
+      Math.min(window.devicePixelRatio || 1, qualityConfig.maxDpr),
     );
 
     const initialRenderer = options.renderer ?? "points";
